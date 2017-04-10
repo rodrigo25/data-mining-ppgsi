@@ -1,4 +1,4 @@
-function [ U, kpoints ] = kmeans( data, k )
+function [ U, kpoints ] = kmeans( data, k, dist )
 
   [n, m] = size(data);
 
@@ -17,6 +17,7 @@ function [ U, kpoints ] = kmeans( data, k )
   old_kpoints = kpoints+5; %protótipos anteriores para controle
   epsilon = 0; %erro máximo
   
+  % LAÇO DE ITERAÇÕES DO K-MEANS
   while(abs(old_kpoints - kpoints)>epsilon & (it<maxIt))
     it = it+1;
     old_kpoints = kpoints;
@@ -24,13 +25,13 @@ function [ U, kpoints ] = kmeans( data, k )
     % ATUALIZA MATRIZ DE PARTIÇÃO
     for i=1:n   %para cada instancia
       p = data(i,:);
-      D = distance(p, kpoints, k); %calcula distancias dos protótipos
+      D = distance(p, kpoints, k, dist); %calcula distancias dos protótipos
       [~,ind] = min(D); %Verifica qual o protótipo de menor distancia
       U(:,i)=0; %Zera todos os protótipos desse ponto
       U(ind,i)=1; %atribui 1 ao protótipo de menor distancia
     end
           
-    % PLOTA GRÁFICO
+    % PLOTA GRÁFICO (Para problemas bidimensionais)
 %        clf
 %        plot(data(U(1,:)==1,1), data(U(1,:)==1,2), 'ro')
 %        hold on
@@ -53,20 +54,25 @@ function [ U, kpoints ] = kmeans( data, k )
   % ÚLTIMA ATUALIZAÇÃO DA MATRIZ
   for i=1:n   %para cada instancia
     p = data(i,:);
-    D = distance(p, kpoints, k); %calcula distancias dos protótipos
+    D = distance(p, kpoints, k, dist); %calcula distancias dos protótipos
     [~,ind] = min(D); %Verifica qual o protótipo de menor distancia
     U(:,i)=0; %Zera todos os protótipos desse ponto
     U(ind,i)=1; %atribui 1 ao protótipo de menor distancia
   end
   
   fprintf('número de iterações: %i\n\n', it)
+  
+  
 end
 
 
 % FUNÇÃO DE DISTÂNCIAS
-function D = distance(p, kpoints, k)
+function D = distance(p, kpoints, k, dist)
   P = repmat(p,k,1);
-  D = sqrt(sum((P-kpoints).^2, 2));
-  %D = sum(abs(P-kpoints), 2);
+  if strcmp(dist,'e') %distancia euclidiana
+    D = sqrt(sum((P-kpoints).^2, 2));
+  elseif strcmp(dist,'m') %distancia manhattan
+    D = sum(abs(P-kpoints), 2);
+  end
 end
 
