@@ -3,7 +3,7 @@
 % dim   - [Nx Ny] (Nx*Ny=Ns)
 % topology  - 'hex' ou 'rec'
 %function [ output_args ] = SOM( data, Ns, dim, topology)
-function [ W ] = SOM( data, dim, topology)
+function [ output_args ] = SOM( data, Ns, dim, topology)
 
 Ns = dim(1)*dim(2);
 neuronsGrid = [ceil((1:Ns)/dim(1));mod((0:Ns-1),dim(1))+1]';
@@ -18,7 +18,7 @@ radius = max(dim)/2;
 % raio - Raio de vizinhança
 fDist = 'e';
 % fDist - Função de distância utilizada ('e' euclidiana ou 'm' manhattan )
-itMax = 200;
+itMax = 100;
 % itMax - Num máximo de iterações
 it = 1;
 % it - Contador de iterações
@@ -35,18 +35,18 @@ while (it<itMax)
   for i=1:n %iteração em todos as instancias
     p = data(i,:);
     %p - ponto vetorial da instancia i
-    Dist = distance(p,W,fDist);
+    D = distance(p,W,fDist);
     %D - Distancia do ponto p para a posição dos neuronios W
     
-    [~,BMU] = min(Dist);
+    [~,BMU] = min(D);
     %BMU - Neuronio mais próximo de p
     
-    theta = neighborhood(topology,neuronsGrid,radius,BMU,it);
+    theta = neighborhood(W,topology,radius,BMU,it);
     %theta - Matriz de pesos para atualização dos vizinhos do BMU
     
     % ATUALIZA OS PESOS W
     P = repmat(p,Ns,1);
-    W = W + repmat(theta,1,D).*alfa.*(P-W);
+    W = W + theta*alfa*(P-W);
     
   end
   
@@ -59,13 +59,13 @@ end
 
 end
 
-function [theta] = neighborhood(topology,neuronsGrid,radius,BMU,t)
+function [theta] = neighborhood(W,dim,topology,radius,BMU,t)
   tau = 5;
   
   if strcmp(topology, 'gauss')
     radius = radius*exp(-t/tau);
-    D = distance(neuronsGrid(BMU,:),neuronsGrid,'e');
-    theta = exp(-D./(2*radius^2));
+    D = distance();
+    theta = exp(-D./(2*radius^2))
   elseif strcmp(topology, 'hex')
   elseif strcmp(topology, 'rec')
     

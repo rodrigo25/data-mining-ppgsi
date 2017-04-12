@@ -5,10 +5,12 @@ function [ U, kpoints ] = kmeans( data, k, dist )
   % INICIA PROTÓTIPOS RANDOMICAMENTE
   maximo = max(data);   %valores máximos de cada variavel
   minimo = min(data);   %valores minimos de cada variavel
-  kpoints = zeros(k,m);
-  for i=1:m     % cria k valores para a variavel m no intervalo [min max] de m
-    kpoints(:,i) = minimo(i)+(maximo(i)-minimo(i)).*rand(k,1);
-  end
+  kpoints = repmat(minimo,k,1)+repmat(maximo-minimo,k,1).*rand(k,m);
+  %kpoints = zeros(k,m);
+  %for i=1:m     % cria k valores para a variavel m no intervalo [min max] de m
+  %  kpoints(:,i) = minimo(i)+(maximo(i)-minimo(i)).*rand(k,1);
+  %end
+  
 
   % DEFINIÇÃO DE VARIÁVEIS
   maxIt = 100; % maximo de iterações
