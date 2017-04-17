@@ -11,6 +11,7 @@ markers = {'+','o','*','x','s','d','^','v','>','<','p','h'};
 
 for i=1:k %polota dados de cada cluster
   scatter(data(clusters{i},1), data(clusters{i},2), markers{mod(i,numel(markers))+1})
+  %fprintf('Cluster %i = %s\n', i, markers{mod(i,numel(markers))+1});
 end
 
 scatter(kpoints(:,1),kpoints(:,2),40,'k','filled') %plota centroids

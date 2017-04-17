@@ -72,7 +72,7 @@ function [ U, kpoints ] = kmeanspp( data, k, dist )
     U(ind,i)=1; %atribui 1 ao protótipo de menor distancia
   end
   
-  fprintf('número de iterações: %i\n\n', it)
+  %fprintf('número de iterações: %i\n\n', it)
   
   
   
