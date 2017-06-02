@@ -3,25 +3,22 @@
 % dim   - [Nx Ny] (Nx*Ny=Ns)
 % topology  - 'hex' ou 'rec'
 %function [ output_args ] = SOM( data, Ns, dim, topology)
-function [ W ] = SOM( data, dim, topology)
+function [ W ] = SOM( data, neur, dim, topology)
 
-Ns = dim(1)*dim(2);
-neuronsGrid = [ceil((1:Ns)/dim(1));mod((0:Ns-1),dim(1))+1]';
+Ns = neur^dim;
+neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios no grid
 
 % DEFINIÇÃO DE VARIÁVEIS
-[n,D] = size(data); 
-% n - qtd exemplos d  e dados
+% n - qtd exemplos de dados
 % D - Dimensão original do problema
-alfa = .1;
-% alfa - Taxa de aprendizado
-radius = max(dim)/2;
-% raio - Raio de vizinhança
-fDist = 'e';
-% fDist - Função de distância utilizada ('e' euclidiana ou 'm' manhattan )
-itMax = 200;
-% itMax - Num máximo de iterações
-it = 1;
-% it - Contador de iterações
+[n,D] = size(data); 
+alfa = .9; % Taxa de aprendizado
+alfaIni = alfa; % Taxa de aprendizado
+lambda = 32;
+radius = 30; % Raio de vizinhança
+fDist = 'e'; % Função de distância utilizada ('e' euclidiana ou 'm' manhattan )
+itMax = 300; % Num máximo de iterações
+it = 1; % Contador de iterações
 
 % INICIA PROTÓTIPOS RANDOMICAMENTE
 maximo = max(data);   %valores máximos de cada dimensão original
@@ -33,16 +30,14 @@ W = repmat(minimo,Ns,1)+repmat(maximo-minimo,Ns,1).*rand(Ns,D);
 while (it<itMax)
   it = it + 1;
   for i=1:n %iteração em todos as instancias
-    p = data(i,:);
-    %p - ponto vetorial da instancia i
-    Dist = distance(p,W,fDist);
-    %D - Distancia do ponto p para a posição dos neuronios W
     
-    [~,BMU] = min(Dist);
-    %BMU - Neuronio mais próximo de p
+    p = data(i,:); % ponto vetorial da instancia i
+    Dist = distance(p,W,fDist); % Distancia do ponto p para a posição dos neuronios W
     
-    theta = neighborhood(topology,neuronsGrid,radius,BMU,it);
+    [~,BMU] = min(Dist); %BMU - Neuronio mais próximo de p
+    
     %theta - Matriz de pesos para atualização dos vizinhos do BMU
+    theta = neighborhood(topology,neuronsGrid,radius,BMU,it);
     
     % ATUALIZA OS PESOS W
     P = repmat(p,Ns,1);
@@ -53,14 +48,14 @@ while (it<itMax)
   % ALTERA A TAXA  DE APRENDIZADO  
   %20*exp(-7/1)
   %raioIni*exp(-it/1) diminuição do raio
-  %alfaIni*exp(-it/lambda) diminuição do alfa
+  alfa = alfaIni*exp(-it/lambda); %diminuição do alfa
   
 end
 
 end
 
 function [theta] = neighborhood(topology,neuronsGrid,radius,BMU,t)
-  tau = 5;
+  tau = 32;
   
   if strcmp(topology, 'gauss')
     radius = radius*exp(-t/tau);
