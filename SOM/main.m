@@ -6,7 +6,7 @@ k=4;
 
 [n,m] = size(X);
 
-X = (X-repmat(mean(X),n,1))./repmat(std(X),n,1); % Z-SCORE NORALIZATION
+X = (X-repmat(mean(X),n,1))./repmat(std(X),n,1); % Z-SCORE NORMALIZATION
 
 %X = X(1:1000,:);
 
@@ -14,7 +14,7 @@ Nx = 12;
 Ny = 12;
 Ns = Nx*Ny;
 
-[W] = SOM( X, [Nx Ny], 'gauss');
+[W] = SOM( X, [Nx Ny], 'gauss', .9, 30, 'e', 300 );
 
 
 %neuronsGrid = [ceil((1:Ns)/dim(1));mod((0:Ns-1),dim(1))+1]';

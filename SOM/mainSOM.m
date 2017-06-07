@@ -1,12 +1,12 @@
 %load data_rand1000.mat
-load t4.8k.mat
+%load t4.8k.mat
 %load path-based2.mat
 %load uniform
-%load dataTest1.mat
+load dataTest1.mat
 
 [n,m] = size(X);
 
-X = (X-repmat(mean(X),n,1))./repmat(std(X),n,1); % Z-SCORE NORALIZATION
+X = (X-repmat(mean(X),n,1))./repmat(std(X),n,1); % Z-SCORE NORMALIZATION
 
 % permutacao dos dados
 rp = randperm(size(X,1)); % permuta os indices
@@ -17,7 +17,7 @@ Nx = 25;
 Ns = Nx*Nx;
 dim = 2;
 
-[W] = SOM( X, Nx, dim, 'gauss');
+[W] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
 
 
 grid = (Nx);

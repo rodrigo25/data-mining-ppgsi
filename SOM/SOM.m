@@ -2,8 +2,12 @@
 % Ns - Qtd de neuronios de saida
 % dim   - [Nx Ny] (Nx*Ny=Ns)
 % topology  - 'hex' ou 'rec'
+% alfa - Taxa de aprendizado
+% radius - Raio delimitador da vizinhança de um neuronio
+% fDist - Função de distancia ('e' euclidiana, 'm' manhattan )
+% itMax - Num maximo de iterações
 %function [ output_args ] = SOM( data, Ns, dim, topology)
-function [ W ] = SOM( data, neur, dim, topology)
+function [ W ] = SOM( data, neur, dim, topology, alfa, radius, fDist, itMax )
 
 Ns = neur^dim;
 neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios no grid
@@ -12,12 +16,8 @@ neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios n
 % n - qtd exemplos de dados
 % D - Dimensão original do problema
 [n,D] = size(data); 
-alfa = .9; % Taxa de aprendizado
-alfaIni = alfa; % Taxa de aprendizado
+alfaIni = alfa; % Taxa de aprendizado inicial
 lambda = 32;
-radius = 30; % Raio de vizinhança
-fDist = 'e'; % Função de distância utilizada ('e' euclidiana ou 'm' manhattan )
-itMax = 300; % Num máximo de iterações
 it = 1; % Contador de iterações
 
 % INICIA PROTÓTIPOS RANDOMICAMENTE
