@@ -14,13 +14,12 @@ X = X(rp,:); % aplica permutacao em X
 %Y = Y(rp,:); % aplica permutacao em Y
 
 Nx = 25;
-Ns = Nx*Nx;
 dim = 2;
 
-[W] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
-
+[W, Ns, ~] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
 
 grid = (Nx);
+
 
 for i=1:Ns
   t = 0;
@@ -45,7 +44,7 @@ for i=1:Ns
     soma = soma + norm(W(i)-W(i-1));
     %plot([W(i,1) W(i-1,1)],[W(i,2) W(i-1,2)],'r')
   end
-  
+
   grid((fix((i-1)/Nx)+1), (rem(i-1,Nx)+1)) = soma/t;
 end
 
@@ -58,10 +57,9 @@ colorMap = jet(256);
 colormap(colorMap);
 colorbar;
 
+
 figure
-scatter(X(:,1),X(:,2))
-
-
+scatter(X(:,1),X(:,2)) 
 
 
 

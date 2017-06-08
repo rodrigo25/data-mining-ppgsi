@@ -7,7 +7,7 @@
 % fDist - Função de distancia ('e' euclidiana, 'm' manhattan )
 % itMax - Num maximo de iterações
 %function [ output_args ] = SOM( data, Ns, dim, topology)
-function [ W ] = SOM( data, neur, dim, topology, alfa, radius, fDist, itMax )
+function [ W, Ns,quantError ] = SOM( data, neur, dim, topology, alfa, radius, fDist, itMax )
 
 Ns = neur^dim;
 neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios no grid
@@ -28,6 +28,15 @@ W = repmat(minimo,Ns,1)+repmat(maximo-minimo,Ns,1).*rand(Ns,D);
 
 % PROCESSO ITERATIVO
 while (it<itMax)
+  if it == 1
+      fprintf('Iterations:\n');
+  end
+  if mod(it,25) == 0
+     fprintf('%d ', it);
+  end
+  if mod(it,100) == 0
+    fprintf('\n'); 
+  end
   it = it + 1;
   for i=1:n %iteração em todos as instancias
     
@@ -49,9 +58,18 @@ while (it<itMax)
   %20*exp(-7/1)
   %raioIni*exp(-it/1) diminuição do raio
   alfa = alfaIni*exp(-it/lambda); %diminuição do alfa
-  
 end
 
+    BMUs = zeros(n,D);
+    for i=1:n
+        p = data(i,:);
+        Dist = distance(p,W,fDist);
+        [~,BMUindex] = min(Dist);
+        BMUs(i, :) = W(BMUindex, :);
+    end
+    
+    quantError = sum(distance2(data, BMUs, fDist), 1)/n;
+    fprintf('\nQuantization error=%.4f\n', quantError);
 end
 
 function [theta] = neighborhood(topology,neuronsGrid,radius,BMU,t)
@@ -74,6 +92,14 @@ end
 function D = distance(p, POINTS, fDist)
   [n,~] = size(POINTS);
   P = repmat(p,n,1);
+  if strcmp(fDist,'e') %distancia euclidiana
+    D = sqrt(sum((P-POINTS).^2, 2));
+  elseif strcmp(fDist,'m') %distancia manhattan
+    D = sum(abs(P-POINTS), 2);
+  end
+end
+
+function D = distance2(P, POINTS, fDist)
   if strcmp(fDist,'e') %distancia euclidiana
     D = sqrt(sum((P-POINTS).^2, 2));
   elseif strcmp(fDist,'m') %distancia manhattan
