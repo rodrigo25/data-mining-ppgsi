@@ -1,0 +1,19 @@
+function [ X_folds, Yfolds, Xt, Yt ] = kfoldCV( X, Y, k )
+
+  N = size(X,1);
+  
+  % permutacao dos dados
+  rp = randperm(N); % permuta os indices
+  X = X(rp,:); % aplica permutacao em X
+  Y = Y(rp,:); % aplica permutacao em Y
+
+  
+  tamFold = round(N/k);
+  
+  for fold = 1:k  % gera os k-folds X e Y
+    
+  end
+  
+
+end
+

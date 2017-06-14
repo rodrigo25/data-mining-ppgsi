@@ -1,12 +1,12 @@
 %load('portas.mat');
-load('dados_.mat')
-%load('spambase.mat')
-%Xtr = X;
-%Ytr = Y_XOR;
+%load('dados_.mat')
+load('spambase.mat')
+Xtr = X;
+Ytr = Y;
 
 N = size(Xtr,1);
 
-[ A, B ] = MLP( Xtr, Ytr, [], [], 2 );
+[ A, B ] = MLP( Xtr, Ytr, [], [], 5 );
 
 [ Y ] = saidaMLP( Xtr, A, B )
 
