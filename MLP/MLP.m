@@ -11,7 +11,7 @@ Xtr = [ones(N,1),Xtr];
 A = rand(mA, m0+1); %Pesos camada de escondida
 B = rand(mB, mA+1); %Pesos camada de saida
 
-alfa = .1; %taxa de aprendizado
+alfa = .01; %taxa de aprendizado
 
 it = 0; %contador de iteracoes
 maxIt = 10000; %máximo de iteracoes
@@ -51,5 +51,6 @@ while it<maxIt
   ERRO = [ERRO;EQM];
 end
 plot(ERRO);
+disp(it)
 
 end

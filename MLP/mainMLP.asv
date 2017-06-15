@@ -1,13 +1,24 @@
-%load('portas.mat');
-load('dados_.mat')
+load('data_test_gate.mat');
+%load('data_test_1.mat')
+%load('spambase.mat')
+Xtr = X;
+Ytr = Y_XOR;
 
-[ A, B ] = MLP( Xtr, Ytr, [], [], 2 );
+N = size(Xtr,1);
+
+[ A, B ] = MLP( Xtr, Ytr, [], [], 5 );
 
 [ Y ] = saidaMLP( Xtr, A, B )
 
 Y(Y>=.5) = 1;
 Y(Y<.5) = 0;
 
+acc =  (N - sum(abs(Y - Ytr)))/N
+
+
+disp('Matriz de Confusão Binária')
+confMatrix = confusionmat(Ytr,Y);
+disp(array2table(confMatrix,'VariableNames',{'T','F'},'RowNames',{'T','F'}))
 
 
 %scatter(X((Y_AND==1),1),X((Y_AND==1),2),'x');
