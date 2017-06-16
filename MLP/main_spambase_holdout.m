@@ -1,4 +1,4 @@
-load('data_spambase.mat')
+load('data/data_spambase.mat')
 
 %NORMALIZACAO DOS DADOS
 [X, mean_val, std_val] = normalization( X, 'zscore' ); % z-score

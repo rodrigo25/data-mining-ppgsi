@@ -1,6 +1,6 @@
-load('data_test_gate.mat');
-%load('data_test_1.mat')
-%load('spambase.mat')
+load('data/data_test_gate.mat');
+%load('data/data_test_1.mat')
+%load('data/data_spambase.mat')
 Xtr = X;
 Ytr = Y_XOR;
 
