@@ -1,22 +1,11 @@
 load('data_spambase.mat')
-[N, m] = size(X);
-k=10;
-hidLayers = 5;
 
 %NORMALIZACAO DOS DADOS
-% z-score normalization
-X = (X-repmat(mean(X),N,1))./repmat(std(X),N,1); 
-
-% min-max normalization
-%min_val = min(X)-.1;
-%max_val = max(X)+.5;
-%data = zeros(N,m);
-%for i=1:m
-%  data(:,i) = (X(:,i)-min_val(i))/(max_val(i)-min_val(i));
-%end
-
+[X, mean_val, std_val] = normalization( X, 'zscore' ); % z-score
+%[X, ~, ~, min_val, max_val] = normalization( X, 'minmax' ); % min-max
 
 %CRIACAO DOS K-FOLDS
+k=10;
 [ X_folds, Y_folds ] = kfoldCV( X, Y, k );   % k-fold cross-validation
 
 for it=1:k
@@ -52,10 +41,5 @@ end
 
 %CALCULA RESULTADOS GERAL DO CROSS-VALIDATION
 
-% acuracia
-acc =  (N - sum(abs(Y - Yt)))/N
 
 % Matriz de confusao
-disp('Matriz de Confusão Binária')
-confMatrix = confusionmat(Ytr,Y);
-disp(array2table(confMatrix,'VariableNames',{'P','N'},'RowNames',{'P','N'}))

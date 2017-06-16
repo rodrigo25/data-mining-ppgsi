@@ -1,40 +1,32 @@
 load('data_spambase.mat')
-[N, m] = size(X);
 
 %NORMALIZACAO DOS DADOS
-%z-score normalization
-X = (X-repmat(mean(X),N,1))./repmat(std(X),N,1); 
-
-% min-max normalization
-%min_val = min(X)-.1;
-%max_val = max(X)+.5;
-%data = zeros(N,m);
-%for i=1:m
-%  data(:,i) = (X(:,i)-min_val(i))/(max_val(i)-min_val(i));
-%end
-
+[X, mean_val, std_val] = normalization( X, 'zscore' ); % z-score
+%[X, ~, ~, min_val, max_val] = normalization( X, 'minmax' ); % min-max
 
 %SEPARACAO CONJ DE TREINAMENTO E TESTE
-%Xtr = X; Ytr = Y; Xt = X; Yt = Y; % teste com todos os dados
+%Xtr = X; Ytr = Y; Xt = X; Yt = Y; % trainda e testa com todos os dados
 [ Xtr, Ytr, Xt, Yt ] = holdout( X, Y, 0.7 ); % holdout cross-validation
 
-
 %TREINA CLASSIFICADOR
-[ A, B ] = MLP( Xtr, Ytr, [], [], 5 );
+[ A, B ] = MLPtreina( Xtr, Ytr, [], [], 5 );
 
 %TESTA CLASSIFICADOR
-[ Y ] = saidaMLP( Xt, A, B )
+[ Y ] = MLPsaida( Xt, A, B );
 
 %DEFINE LIMIAR DE DECISAO
 Y(Y>=.5) = 1;
 Y(Y<.5) = 0;
 
 %CALCULA RESULTADOS
+[ confMatrix, res, res_struct] = calc_result( Yt, Y );
 
-% acuracia
-acc =  (N - sum(abs(Y - Yt)))/N
+% SALVA RESULTADOS
 
-% Matriz de confusao
+
+% IMPRIME RESULTADOS
 disp('Matriz de Confusão Binária')
-confMatrix = confusionmat(Ytr,Y);
 disp(array2table(confMatrix,'VariableNames',{'P','N'},'RowNames',{'P','N'}))
+
+disp('Estatísticas')
+disp(table(res(:,3),'VariableNames',{'Estatisticas'},'RowNames',res(:,2)));
