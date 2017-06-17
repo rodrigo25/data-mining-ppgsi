@@ -20,13 +20,12 @@ Nx = 25;
 dim = 2;
 
 %TREINAMENTO DO SOM
-[W, Ns, ~] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
+[W, Ns, ~, ~] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
 
 %RESULTADOS
 %cria diretorio para salvar os arquivos do teste
-dt = datetime;
-dt.Format = 'yyMMdd''T''HHmmss';
-dirName = ['Resultados/' dataset '/' char(dt) '/'];
+timestamp = sprintf('%sT%d%d%2.0d',datestr(date,'yymmdd'),hour(now),minute(now),round(second(now)));
+dirName = ['Resultados/' dataset '/' timestamp '/'];
 mkdir(dirName);
 
 % Plota dados originais
