@@ -1,7 +1,7 @@
 % Xtr, Ytr - Conjunto de treinamento
 % Xval, Yval - Conjunto de validacao
 % mHL - Numero de neuronios na camada escondida
-function [ A, B ] = MLP( Xtr, Ytr, Xval, Yval, mA )
+function [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, mA )
 
 [N, m0] = size(Xtr);
 mB = size(Ytr,2);
@@ -11,15 +11,16 @@ Xtr = [ones(N,1),Xtr];
 A = rand(mA, m0+1); %Pesos camada de escondida
 B = rand(mB, mA+1); %Pesos camada de saida
 
-alfa = .01; %taxa de aprendizado
+alfa = .8; %taxa de aprendizado
 
 it = 0; %contador de iteracoes
 maxIt = 10000; %máximo de iteracoes
 
-EQM = inf;
 maxErr = 1e-5;
 
 ERRO = [];
+alfas = [ alfa ];
+alfa0 = alfa;
 
 while it<maxIt
   it = it+1;
@@ -48,9 +49,21 @@ while it<maxIt
   A = A + deltaA;
   B = B + deltaB;
   
+  %Learning rate update
+  alfa = alfa0/( 1 + it*0.001);
+  
+  %Stores some values for plotting
+  alfas = [alfas;alfa];
   ERRO = [ERRO;EQM];
 end
+
+figure;
 plot(ERRO);
-disp(it)
+title('EQM');
+figure;
+plot(alfas);
+title('Alfa');
+
+fprintf('Iterations: %d\n', it);
 
 end
