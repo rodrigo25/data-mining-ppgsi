@@ -1,8 +1,9 @@
 %CARREGA DADOS
 % dataset = 't4.8k';
 % dataset = 'path-based2';
-dataset = 'test_rand1k';
+% dataset = 'test_rand1k';
 % dataset = 'test_uniform';
+dataset = 'test_points2';
 
 load(['data/data_' dataset])
 
@@ -17,14 +18,14 @@ X = X(rp,:); % aplica permutacao em X
 
 %PARAMETRIZAÇÃO
 Nx = 25;
-dim = 2;
+dim = 1;
 
 %TREINAMENTO DO SOM
 [W, Ns, ~, ~] = SOM( X, Nx, dim, 'gauss', .9, 30, 'e', 300 );
 
 %RESULTADOS
 %cria diretorio para salvar os arquivos do teste
-timestamp = sprintf('%sT%d%d%2.0d',datestr(date,'yymmdd'),hour(now),minute(now),round(second(now)));
+timestamp = sprintf('%sT%d%d%d',datestr(date,'yymmdd'),hour(now),minute(now),round(second(now)));
 dirName = ['Resultados/' dataset '/' timestamp '/'];
 mkdir(dirName);
 
