@@ -8,7 +8,7 @@ function [Ynew, classes] = multiclassY(Y)
     nc = length(classes);
     Ynew = zeros(size(Y,1), nc);
     for cInd=1:nc
-    c = classes(cInd);
-    Ynew(Y == c, cInd) = 1;
+        c = classes(cInd);
+        Ynew(Y == c, cInd) = 1;
     end
 end
