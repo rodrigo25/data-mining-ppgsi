@@ -42,24 +42,24 @@ for i=1:2:tam_matrix
   for j=1:2:tam_matrix
     t = 0;
     soma = 0;
-    if(i-1>0) %pra cima
+    if((fix((i-1)/Nx) ~= 0))%linha pra cima
       t = t+1;
-      soma = soma + u_matrix(i-1,j);
+      soma = soma + norm(W(i)-W(i-Nx));
     end 
-    if (j+1<=Nx)%pra direita
+    if (rem(i-1,Nx) ~= Nx-1)%linha pra direita
       t = t+1;
-      soma = soma + u_matrix(i,j+1);
+      soma = soma + norm(W(i)-W(i+1));
     end
-    if (i+1<=Nx)%pra baixo
+    if (fix((i-1)/Nx) ~= Nx-1)%linha pra baixo
       t = t+1;
-      soma = soma + u_matrix(i+1,j);
+      soma = soma + norm(W(i)-W(i+Nx));
     end
-    if (j-1>0)%pra esquerda
+    if (rem(i-1,Nx) ~= 0)%linha pra esquerda
       t = t+1;
-      soma = soma + u_matrix(i,j-1);
+      soma = soma + norm(W(i)-W(i-1));
     end
   
-    u_matrix(i,j) = soma/t;
+    grid((fix((i-1)/Nx)+1), (rem(i-1,Nx)+1)) = soma/t;
     
   end
 end

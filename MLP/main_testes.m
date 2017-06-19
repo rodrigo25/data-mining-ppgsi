@@ -15,28 +15,16 @@ Y(Y<.5) = 0;
 
 
 
-[confMatrix] = confusionmat(Ytr,Y,'order',[1,0]);
+[ confMatrix, res, res_struct] = calc_result( Ytr, Y );
 
-TP = confMatrix(1,1);
-FN = confMatrix(1,2);
-FP = confMatrix(2,1);
-TN = confMatrix(2,2);
-
-TPR = TP/(TP+FN);
-TNR = TN/(TN+FP);
-PPV = TP/(TP+FP)
-NPV = TN/(TN+FN);
-FNR = FN/(FN+TP);
-FPR = FP/(FP+TN);
-FDR = FP/(FP+TP);
-FOR = FN/(FN/TN);
-ACC = (TP+TN)/(TP+TN+FP+FN)
-Fscore = 2*(PPV*TPR)/(PPV+TPR);
-
+% IMPRIME RESULTADOS
 disp('Matriz de Confusão Binária')
 disp(array2table(confMatrix,'VariableNames',{'P','N'},'RowNames',{'P','N'}))
 
-disp(table([TPR;TNR;PPV;FNR;FPR],'RowNames',{'Recall' 'Specificity' 'Precision' 'FNR' 'FPR'}));
+disp('Estatísticas')
+disp(table(res(:,3),'VariableNames',{'Estatisticas'},'RowNames',res(:,2)));
+
+
 
 %scatter(X((Y_AND==1),1),X((Y_AND==1),2),'x');
 %hold on

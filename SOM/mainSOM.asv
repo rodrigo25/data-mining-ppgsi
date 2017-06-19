@@ -1,12 +1,10 @@
 %CARREGA DADOS
 %dataset = 't4.8k.mat';
-%dataset = 't4.8k-modified.mat';
 %dataset = 'path-based2';
 %dataset = 'test_rand1k';
 %dataset = 'test_uniform';
-dataset = 'test_points2';
-%dataset = 'test_S1';
-%dataset = 'test_chainlink';
+%dataset = 'test_points2';
+dataset = 'test_S1';
 
 load(['data/data_' dataset])
 
@@ -20,7 +18,7 @@ X = X(rp,:); % aplica permutacao em X
 %Y = Y(rp,:); % aplica permutacao em Y
 
 %PARAMETRIZAÇÃO
-Nx = 10;
+Nx = 30;
 dim = 2;
 
 %TREINAMENTO DO SOM
