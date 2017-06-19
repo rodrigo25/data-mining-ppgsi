@@ -7,7 +7,7 @@
 % fDist - Função de distancia ('e' euclidiana, 'm' manhattan )
 % itMax - Num maximo de iterações
 %function [ output_args ] = SOM( data, Ns, dim, topology)
-function [ W, Ns,quantError ] = SOM( data, neur, dim, topology, alfa, radius, fDist, itMax )
+function [ W, Ns, quantError, topologicError ] = SOM( data, neur, dim, topology, alfa, radius, fDist, itMax )
 
 Ns = neur^dim;
 neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios no grid
@@ -61,15 +61,26 @@ while (it<itMax)
 end
 
     BMUs = zeros(n,D);
+    topologicErrorInd = zeros(n,1);
     for i=1:n
         p = data(i,:);
         Dist = distance(p,W,fDist);
         [~,BMUindex] = min(Dist);
         BMUs(i, :) = W(BMUindex, :);
+       
+        Dist(BMUindex,1) = max(Dist);
+        [~,secondBMUindex] = min(Dist);
+        BMUsDistances = distance(neuronsGrid(BMUindex,:), neuronsGrid(secondBMUindex,:), 'e');
+        if BMUsDistances > sqrt(2)
+           topologicErrorInd(i) = 1;
+        end
     end
     
     quantError = sum(distance2(data, BMUs, fDist), 1)/n;
-    fprintf('\nQuantization error=%.4f\n', quantError);
+    fprintf('\nQuantization error=%.8f\n', quantError);
+    
+    topologicError = sum(topologicErrorInd)/n;
+    fprintf('\nTopologic error=%.8f\n', topologicError);   
 end
 
 function [theta] = neighborhood(topology,neuronsGrid,radius,BMU,t)

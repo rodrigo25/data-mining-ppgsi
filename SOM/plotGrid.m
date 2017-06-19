@@ -13,7 +13,7 @@ switch dimW
       if (rem(i-1,Nx) ~= Nx-1)  %Verifica se não está na borda direita
         plot([W(i,1) W(i+1,1)],[W(i,2) W(i+1,2)],'r') %Desenha linha pra direita
       end
-      if (fix((i-1)/Nx) ~= Nx-1)  %Verifica se não está na borda inferior
+      if (fix((i-1)/Nx) ~= Nx-1 && Ns ~= Nx)  %Verifica se não está na borda inferior
         plot([W(i,1) W(i+Nx,1)],[W(i,2) W(i+Nx,2)],'r') %Desenha linha pra baixo
       end
     end

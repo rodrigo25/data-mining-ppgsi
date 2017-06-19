@@ -1,7 +1,11 @@
+function [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, mA, maxIt )
+% MLPtreina treina uma MLP
 % Xtr, Ytr - Conjunto de treinamento
 % Xval, Yval - Conjunto de validacao
-% mHL - Numero de neuronios na camada escondida
-function [ A, B ] = MLP( Xtr, Ytr, Xval, Yval, mA )
+% mA - Numero de neuronios na camada escondida
+if nargin < 6
+    maxIt = 10000; %máximo de iteracoes
+end
 
 [N, m0] = size(Xtr);
 mB = size(Ytr,2);
@@ -11,15 +15,15 @@ Xtr = [ones(N,1),Xtr];
 A = rand(mA, m0+1); %Pesos camada de escondida
 B = rand(mB, mA+1); %Pesos camada de saida
 
-alfa = .01; %taxa de aprendizado
+alfa = .8; %taxa de aprendizado
 
 it = 0; %contador de iteracoes
-maxIt = 10000; %máximo de iteracoes
 
-EQM = inf;
 maxErr = 1e-5;
 
 ERRO = [];
+alfas = [ alfa ];
+alfa0 = alfa;
 
 while it<maxIt
   it = it+1;
@@ -48,9 +52,37 @@ while it<maxIt
   A = A + deltaA;
   B = B + deltaB;
   
+  %Learning rate update
+  alfa = alfa0/( 1 + it*0.001);
+  
+  %Stores some values for plotting
+  alfas = [alfas;alfa];
   ERRO = [ERRO;EQM];
+
+   figure(1)
+   clf
+   %plot(Ytr,'r--')
+   %hold on
+   %plot(Y,'b')
+   %grid
+   plot(ERRO);
+   title('EQM X Epocas');
+   xlabel('Epocas');
+   ylabel('Erro Quadratico Medio');
+   text(it, EQM, sprintf('it=%d',it));
 end
+
+close all;
+figure;
 plot(ERRO);
-disp(it)
+title('EQM X Epocas');
+xlabel('Epocas');
+ylabel('Erro Quadratico Medio');
+
+%figure;
+%plot(alfas);
+%title('Alfa');
+
+fprintf('Iterations: %d\n', it);
 
 end
