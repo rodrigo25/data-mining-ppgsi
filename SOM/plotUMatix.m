@@ -1,4 +1,4 @@
-function [ u_matrix ] = umatix( W, Nx, Ns, dirName )
+function [ u_matrix ] = plotUMatix( W, Nx, dirName )
 
 %Cria a U-Matriz com zeros
 tam_matrix = (2*Nx-1);
@@ -42,24 +42,24 @@ for i=1:2:tam_matrix
   for j=1:2:tam_matrix
     t = 0;
     soma = 0;
-    if((fix((i-1)/Nx) ~= 0))%linha pra cima
+    if(i-1>0) %pra cima
       t = t+1;
-      soma = soma + norm(W(i)-W(i-Nx));
+      soma = soma + u_matrix(i-1,j);
     end 
-    if (rem(i-1,Nx) ~= Nx-1)%linha pra direita
+    if (j+1<=Nx)%pra direita
       t = t+1;
-      soma = soma + norm(W(i)-W(i+1));
+      soma = soma + u_matrix(i,j+1);
     end
-    if (fix((i-1)/Nx) ~= Nx-1)%linha pra baixo
+    if (i+1<=Nx)%pra baixo
       t = t+1;
-      soma = soma + norm(W(i)-W(i+Nx));
+      soma = soma + u_matrix(i+1,j);
     end
-    if (rem(i-1,Nx) ~= 0)%linha pra esquerda
+    if (j-1>0)%pra esquerda
       t = t+1;
-      soma = soma + norm(W(i)-W(i-1));
+      soma = soma + u_matrix(i,j-1);
     end
   
-    grid((fix((i-1)/Nx)+1), (rem(i-1,Nx)+1)) = soma/t;
+    u_matrix(i,j) = soma/t;
     
   end
 end
