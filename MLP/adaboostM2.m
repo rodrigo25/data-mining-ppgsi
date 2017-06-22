@@ -1,10 +1,10 @@
-function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax)
+function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, resampleMode)
     
     if size(Ytr,2) ~= length(classes) || size(Ytest,2) ~= length(classes)
        error('Training or test labels dimensions dont correspond to num of classe'); 
     end
 
-    [A, B, beta] = train(T, Xtr, Ytr, Xtest, Ytest, classes, h, nepocasMax);
+    [A, B, beta] = train(T, Xtr, Ytr, Xtest, Ytest, classes, h, nepocasMax, resampleMode);
     
     Yh = 0;
     for t=1:T
@@ -13,7 +13,7 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax)
     sum(Ytr)
 end
 
-function [A, B, beta, D] = train(T, Xtr0, Ytr0, Xt, Yt, classes, h, epochs)
+function [A, B, beta, D] = train(T, Xtr0, Ytr0, Xt, Yt, classes, h, epochs, resampleMode)
     
 % Notacao
 % N - num de instancias
@@ -43,7 +43,7 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, Xt, Yt, classes, h, epochs)
     t = 0;
     while t<T
         t = t+1;       
-        if t > 1
+        if t > 1 && resampleMode == 1
             [Xtr, Ytr, D] = resample(Xtr0, Ytr0, D);
         end
         nPerClass = sum(Ytr)

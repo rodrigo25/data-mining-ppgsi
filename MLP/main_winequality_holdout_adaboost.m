@@ -2,7 +2,7 @@ function [] = main_winequality_holdout_adaboost()
 
     T = 10; % adaboost rounds
     h = 50; % adaboost MLP components hidden layer neuron count
-    nepocas = 100; % adaboost MLP components max epoch count
+    nepocas = 1000; % adaboost MLP components max epoch count
     
     load('data_winequality-red.mat');
 
@@ -15,7 +15,7 @@ function [] = main_winequality_holdout_adaboost()
     
     [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
 
-    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas);
+    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 0);
 
     fprintf('Adaboost global answer (%d components, %d hidden layer neurons, %d epochs)\n', T, h, nepocas);
     [~,Yh]= max(Yh,[],2);
