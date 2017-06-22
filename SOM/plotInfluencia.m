@@ -11,5 +11,6 @@ function [ ] = plotInfluencia( X, W, H, BMU, inflMin, dirName)
     end
   end
 
-  print(im_influencia,[dirName 'influencia'],'-dpng');
+  title(['Influência dos Neurônios com infMin ' num2str(inflMin)])
+  print(im_influencia,[dirName 'influencia(min' num2str(inflMin) ')'],'-dpng');
 end

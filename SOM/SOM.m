@@ -6,13 +6,11 @@
 % tau - Desvio padrao da funcao de decaimento do raio
 % fDist - Função de distancia ('e' euclidiana, 'm' manhattan )
 % itMax - Num maximo de iterações
-function [ W, quantError, topologicError ] = SOM( DATA, dim, alfaIni, radiusIni, lambda, tau, fDist, itMax )
+function [ W, WHist, QuantErrorHist, TopolErrorHist, DeltaMeanHist, DeltaMaxHist, TimeTraining ] = SOM( DATA, dim, alfaIni, radiusIni, lambda, tau, fDist, itMax )
+tic
 
 Ns = dim(1)*dim(2); %Ns - Num total de neuronios no Grid de saida
 neuronsGrid = [ceil((1:Ns)/dim(2));mod((0:Ns-1),dim(2))+1]'; % Vetor de indices dos Ns neuronios no grid
-
-%Ns = neur^dim;
-%neuronsGrid = [ceil((1:Ns)/neur);mod((0:Ns-1),neur)+1]'; %indice dos neuronios no grid
 
 % DEFINIÇÃO DE VARIÁVEIS
 [N,D] = size(DATA); % N - qtd exemplos de dados // D - Dimensão original do problema
@@ -26,10 +24,21 @@ minimo = min(DATA);   %valores minimos de cada dimensão original
 %W - Pesos de cada neuronio. Localização no espaço dimensional D original
 W = repmat(minimo,Ns,1)+repmat(maximo-minimo,Ns,1).*rand(Ns,D);
 
+% INICIA ESTRUTURAS PARA ARMAZENAR HISTORICO
+QuantErrorHist = zeros(itMax,1);
+TopolErrorHist = zeros(itMax,1);
+DeltaMeanHist = zeros(itMax,D);
+DeltaMaxHist = zeros(itMax,D);
+WHist = cell(4,2);
+WHist{1,1} = W;
+WHist{1,2} = 0;
+indWHist = [itMax*0.33 itMax*0.66];
+
 fprintf('Iterations:\n');
 
 % PROCESSO ITERATIVO
 while (it<=itMax)
+  %imprime a iteracao
   if mod(it,25) == 0
     fprintf('%d ', it);
     if mod(it,100) == 0
@@ -41,19 +50,46 @@ while (it<=itMax)
   rp = randperm(size(DATA,1)); % permuta os indices
   DATA = DATA(rp,:); % aplica permutacao em X
   
+  quantErrIt = 0;
+  topolErrIt = 0;
+  deltaMeanIt = 0;
+  deltaMaxIt = zeros(1,D);
+  
   for i=1:N %iteração em todos as instancias
     
+    % CALCULA O BMU (PROCESSO DE COMPETICAO)
     p = DATA(i,:); % ponto vetorial da instancia i
     Dist = distance(p,W,fDist); % Distancia do ponto p para a posição dos neuronios W
     
     [~,BMU] = min(Dist); %BMU - Neuronio mais próximo de p
     
-    %theta - Matriz de pesos para atualização dos vizinhos do BMU
-    theta = neighborhood(neuronsGrid,radius,BMU);
     
-    % ATUALIZA OS PESOS W
+    % (CALCULO DOS ERROS DA ITERACAO)
+    %erro de quantizacao da iteracao
+    quantErrIt = quantErrIt + Dist(BMU);
+    %erro topologico da iteracao
+    Dist(BMU) = Inf;
+    [~,secondBMU] = min(Dist);
+    BMUsDistances = distance(neuronsGrid(BMU,:), neuronsGrid(secondBMU,:), 'e');
+    if BMUsDistances > 1%sqrt(2)
+      topolErrIt = topolErrIt + 1;
+    end
+    
+    % CALCULA OS PESOS DOS VIZINHOS DO BMU (PROCESSO DE COOPERACAO)
+    theta = neighborhood(neuronsGrid,radius,BMU); %Matriz de pesos para atualização dos vizinhos do BMU
+    
+    % ATUALIZA OS PESOS W (PROCESSO DE ADAPTACAO SINAPTICA)
     P = repmat(p,Ns,1);
-    W = W + repmat(theta,1,D).*alfa.*(P-W);
+    delta = repmat(theta,1,D).*alfa.*(P-W);
+    W = W + delta;
+    
+    % (ARMAZENA O DELTA DA ITERACAO)
+    %delta medio da iteracao
+    deltaMeanIt = deltaMeanIt + sum(repmat(theta,1,D).*delta)/sum(theta);
+    
+    %delta maximo da iteracao
+    valores = max(abs(delta));
+    deltaMaxIt( valores>deltaMaxIt ) = valores(valores>deltaMaxIt);
     
   end
   
@@ -61,42 +97,41 @@ while (it<=itMax)
   alfa = alfaIni*exp(-it/lambda); %diminuição do alfa
   radius = radiusIni*exp(-it/tau); %diminuição do raio
   
+  
+  
+  QuantErrorHist(it,1) = quantErrIt/N;
+  TopolErrorHist(it,1) = topolErrIt/N;
+  DeltaMeanHist(it,:) = deltaMeanIt/N;
+  DeltaMaxHist(it,:) = deltaMaxIt;
+  
+  if it==indWHist(1)
+    WHist{2,1} = W;  
+    WHist{2,2} = it;
+  end
+  if it==indWHist(2)
+    WHist{3,1} = W;  
+    WHist{3,2} = it;
+  end
+  
   it = it + 1;
 end
 
-                  BMUs = zeros(N,D);
-                  topologicErrorInd = zeros(N,1);
-                  for i=1:N
-                      p = DATA(i,:);
-                      Dist = distance(p,W,fDist);
-                      [~,BMUindex] = min(Dist);
-                      BMUs(i, :) = W(BMUindex, :);
+WHist{4,1} = W;  
+WHist{4,2} = it-1;
 
-                      Dist(BMUindex,1) = max(Dist);
-                      [~,secondBMUindex] = min(Dist);
-                      BMUsDistances = distance(neuronsGrid(BMUindex,:), neuronsGrid(secondBMUindex,:), 'e');
-                      if BMUsDistances > sqrt(2)
-                         topologicErrorInd(i) = 1;
-                      end
-                  end
-
-                  quantError = sum(distance2(DATA, BMUs, fDist), 1)/N;
-                  fprintf('\nQuantization error=%.8f\n', quantError);
-
-                  topologicError = sum(topologicErrorInd)/N;
-                  fprintf('\nTopologic error=%.8f\n', topologicError);   
+TimeTraining = toc;
+fprintf('Tempo de treinamento (s): \t%7.7f\n', TimeTraining);
 end
 
 
 
 function [theta] = neighborhood(neuronsGrid,radius,BMU)
-  
   %Calcula a distancia de todos os neuronios ao BMU no Grid
   D = distance(neuronsGrid(BMU,:),neuronsGrid,'e');
   %Calcula a influencia da atualizacao sobre os neuronios pelo raio
   theta = exp(-D./(2*radius^2));
-  
 end
+
 
 % FUNÇÃO DE DISTÂNCIAS
 % calcula a distancia do ponto p aos pontos em POINTS
@@ -104,14 +139,6 @@ end
 function D = distance(p, POINTS, fDist)
   [n,~] = size(POINTS);
   P = repmat(p,n,1);
-  if strcmp(fDist,'e') %distancia euclidiana
-    D = sqrt(sum((P-POINTS).^2, 2));
-  elseif strcmp(fDist,'m') %distancia manhattan
-    D = sum(abs(P-POINTS), 2);
-  end
-end
-
-function D = distance2(P, POINTS, fDist)
   if strcmp(fDist,'e') %distancia euclidiana
     D = sqrt(sum((P-POINTS).^2, 2));
   elseif strcmp(fDist,'m') %distancia manhattan

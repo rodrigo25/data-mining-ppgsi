@@ -1,40 +1,143 @@
-function [ u_matrix ] = plotUMatix( W, Nx, dirName )
+function [ u_matrix ] = plotUMatix( W, dim, dirName )
 
 %Cria a U-Matriz com zeros
-tam_matrix = (2*Nx-1);
+tam_matrix = (2*dim-1);
 u_matrix = zeros(tam_matrix);
 
+if any(dim<2)
+  return
+end
 
 %Define os pontos com as distâncias entre neurônios vizinhos horizontais
-for i=1:2:tam_matrix
-  for j=2:2:tam_matrix
+for i=1:2:tam_matrix(1)
+  for j=2:2:tam_matrix(2)
     indj = j/2;
     indi = floor(i/2+1);
-    ind = Nx*(indi-1)+indj;
+    ind = dim(1)*(indi-1)+indj;
     
-    u_matrix(i,j) = norm( W(ind) - W(ind+1) );
+    u_matrix(i,j) = norm( W(ind,:) - W(ind+1,:) );
   end
 end
 
 %Define os pontos com as distâncias entre neurônios vizinhos verticalmente
-for i=2:2:tam_matrix
-  for j=1:2:tam_matrix
+for i=2:2:tam_matrix(1)
+  for j=1:2:tam_matrix(2)
     indi = i/2;
     indj = floor(j/2+1);
-    ind = Nx*(indi-1)+indj;
+    ind = dim(1)*(indi-1)+indj;
     
-    u_matrix(i,j) = norm( W(ind) - W(ind+1) );
+    u_matrix(i,j) = norm( W(ind,:) - W(ind+dim(2),:) );
   end
 end
+
 
 %Define os pontos medio das distancias
 for i=2:2:tam_matrix
   for j=2:2:tam_matrix
+    %média de valores
     valor = u_matrix(i-1,j) + u_matrix(i+1,j) + u_matrix(i,j-1) + u_matrix(i,j+1);
+    %u_matrix(i,j) = valor/4;
     
-    u_matrix(i,j) = valor/4;
+    %como descrito por Costa
+    indi = i/2;
+    indj = j/2;
+    ind = dim(1)*(indi-1)+indj;
+    u_matrix(i,j) = 1/2 * 1/sqrt(2) * (  norm(W(ind,:)-W(ind+dim(2)+1,:)) + norm(W(ind+1,:)-W(ind+dim(2),:))  );
+    
   end
 end
+
+
+
+
+%Define média dos vizinhos de cada neuronio  
+for i=1:2:tam_matrix
+  for j=1:2:tam_matrix
+    
+    indi = floor(i/2+1);
+    indj = floor(j/2+1);
+    ind = dim(1)*(indi-1)+indj;
+    
+    t = 0;
+    soma = 0;
+     
+    if(indi-1>0) %pra cima
+      t = t+1;
+      soma = soma + norm(W(ind,:)- W(ind-dim(2),:));
+      
+      if(indj-1>0) %diagonal cima esquerda
+        t = t+1;
+        soma = soma + norm(W(ind,:)- W(ind-dim(2)-1,:));
+      end
+      if(indj+1<=dim(2)) %diagonal cima direita
+        t = t+1;
+        soma = soma + norm(W(ind,:)- W(ind-dim(2)+1,:));
+      end 
+    end 
+    
+    if (indj+1<=dim(2))%pra direita
+      t = t+1;
+      soma = soma + norm(W(ind,:)- W(ind+1,:));
+    end
+
+    if (indi+1<=dim(1))%pra baixo
+      t = t+1;
+      soma = soma + norm(W(ind,:)- W(ind+dim(2),:));
+      
+      if(indj-1>0) %diagonal baixo esquerda
+        t = t+1;
+        soma = soma + norm(W(ind,:)- W(ind+dim(2)-1,:));
+      end 
+      
+      if(indj+1<=dim(2)) %diagonal baixo direita
+        t = t+1;
+        soma = soma + norm(W(ind,:)- W(ind+dim(2)+1,:));
+      end 
+    end
+    
+    if (indj-1>0)%pra esquerda
+      t = t+1;
+      soma = soma + norm(W(ind,:)- W(ind-1,:));
+    end
+  
+    u_matrix(i,j) = soma/t;
+    
+  end
+end
+
+
+
+
+
+
+im_umatrix = figure;
+maximo  = max(max(u_matrix));
+minimo  = min(min(u_matrix));
+data = ((u_matrix-minimo)/(maximo-minimo))*255;
+image(data);
+colorMap = jet(256);
+colormap(colorMap);
+colorbar;
+title('U-Matrix Bidimensional');
+
+print(im_umatrix,[dirName 'u-matrix2D'],'-dpng');
+
+
+im_umatrix3D = figure;
+surf(1:tam_matrix,1:tam_matrix,u_matrix)
+colorbar
+title('U-Matrix 3D');
+
+print(im_umatrix3D,[dirName 'u-matrix3D'],'-dpng');
+
+
+
+
+return
+
+
+
+
 
 
 %Define média dos vizinhos de cada neuronio  
@@ -46,11 +149,11 @@ for i=1:2:tam_matrix
       t = t+1;
       soma = soma + u_matrix(i-1,j);
     end 
-    if (j+1<=Nx)%pra direita
+    if (j+1<=dim(2))%pra direita
       t = t+1;
       soma = soma + u_matrix(i,j+1);
     end
-    if (i+1<=Nx)%pra baixo
+    if (i+1<=dim(1))%pra baixo
       t = t+1;
       soma = soma + u_matrix(i+1,j);
     end
@@ -69,129 +172,6 @@ end
 
 
 
-im_grid = figure;
-maximo  = max(max(u_matrix));
-minimo  = min(min(u_matrix));
-data = ((u_matrix-minimo)/(maximo-minimo))*255;
-image(data);
-colorMap = jet(256);
-colormap(colorMap);
-colorbar;
-
-print(im_grid,[dirName 'u-matrix'],'-dpng');
-
-
-
-
-
-return
-
-
-
-
-
-
-%Define média dos vizinhos de cada neuronio  
-for i=1:2:tam_matrix
-  for j=1:2:tam_matrix
-    t = 0;
-    soma = 0;
-    if((fix((i-1)/Nx) ~= 0))%linha pra cima
-      t = t+1;
-      soma = soma + norm(W(i)-W(i-Nx));
-    end 
-    if (rem(i-1,Nx) ~= Nx-1)%linha pra direita
-      t = t+1;
-      soma = soma + norm(W(i)-W(i+1));
-    end
-    if (fix((i-1)/Nx) ~= Nx-1)%linha pra baixo
-      t = t+1;
-      soma = soma + norm(W(i)-W(i+Nx));
-    end
-    if (rem(i-1,Nx) ~= 0)%linha pra esquerda
-      t = t+1;
-      soma = soma + norm(W(i)-W(i-1));
-    end
-  
-    grid((fix((i-1)/Nx)+1), (rem(i-1,Nx)+1)) = soma/t;
-    
-  end
-end
-
-
-
-
-
-%Define valores faltantes com a média das distancias
-
-
-
-for i=1:(2*Nx-1)
-  for j=1:(2*Nx-1)
-    
-    if mod(i,2)~=0 %linha impar
-      if mod(j,2)~=0 %coluna impar
-        
-        
-        
-        
-        
-      else %coluna par
-        
-      end
-      
-    else %linha par
-      if mod(j,2)~=0 %coluna impar
-        
-      else %coluna par
-      end
-    end
-      
-  end
-end
-
-
-
-
-
-
-grid = (Nx);
-
-for i=1:Ns
-  t = 0;
-  soma = 0;
-  if((fix((i-1)/Nx) ~= 0))%linha pra cima
-    t = t+1;
-    soma = soma + norm(W(i)-W(i-Nx));
-  end 
-  if (rem(i-1,Nx) ~= Nx-1)%linha pra direita
-    t = t+1;
-    soma = soma + norm(W(i)-W(i+1));
-  end
-  if (fix((i-1)/Nx) ~= Nx-1)%linha pra baixo
-    t = t+1;
-    soma = soma + norm(W(i)-W(i+Nx));
-  end
-  if (rem(i-1,Nx) ~= 0)%linha pra esquerda
-    t = t+1;
-    soma = soma + norm(W(i)-W(i-1));
-  end
-
-  grid((fix((i-1)/Nx)+1), (rem(i-1,Nx)+1)) = soma/t;
-end
-
-
-
-im_grid = figure;
-maximo  = max(max(grid));
-minimo  = min(min(grid));
-data = ((grid-minimo)/(maximo-minimo))*255;
-image(data);
-colorMap = jet(256);
-colormap(colorMap);
-colorbar;
-
-print(im_grid,[dirName 'u-matrix'],'-dpng');
 
 end
 

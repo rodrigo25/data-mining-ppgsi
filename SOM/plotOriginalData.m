@@ -8,12 +8,14 @@ switch dimX
   case 2
     im_originalData = figure;
     scatter(X(:,1),X(:,2));
+    title('Original Data');
     print(im_originalData,[dirName 'originalData'],'-dpng');
     
   %Caso os dados sejam de dimensão 3
   case 3
     im_originalData = figure;
     scatter3(X(:,1),X(:,2),X(:,3));
+    title('Original Data');
     print(im_originalData,[dirName 'originalData'],'-dpng');
 
   otherwise
