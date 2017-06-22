@@ -1,4 +1,4 @@
-function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, resultPath  )
+function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, title, resultPath  )
 %multiclassConfusionMatrix cria e exibe uma matriz de confusao multiclasse.
 %	Yd - matriz (n x 1) com os rotulos do conjunto de dados
 %	Y - matriz (n x 1) com os rotulos preditos
@@ -6,9 +6,11 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, resultPa
 %	resultPath - parametro opcional, quando definido implica na persistencia da
 %	imagem da matriz de confusao
    matrix = confusionmat( Yd, Y' );
-   if nargin > 3
-      plotConfusionMatrix( classes, matrix, resultPath );
-   else
+   if nargin > 4
+      plotConfusionMatrix( classes, matrix, title, resultPath );
+   elseif nargin > 3
+      plotConfusionMatrix( classes, matrix, title );
+   else 
       plotConfusionMatrix( classes, matrix );
    end
    
@@ -17,7 +19,7 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, resultPa
    fprintf('Accuracy is %.6f\n', accuracy);
 end
 
-function [] = plotConfusionMatrix( classes, matrix, resultPath )
+function [] = plotConfusionMatrix( classes, matrix, matrixTitle, resultPath )
     
     imagesc(matrix);            
     colormap(flipud(gray));  
@@ -44,17 +46,19 @@ function [] = plotConfusionMatrix( classes, matrix, resultPath )
             'TickLength',[0 0] );
 	xlabel( 'Predito' );
     ylabel( 'Real' );
-        
-    title('Matriz de confusão');
     
     if nargin > 2
-        confusionMatrixFileName = strcat( resultPath, '\confusionMatrix');
-        pause
-        if ~exist(strcat(confusionMatrixFileName,'.png'), 'file')
-            set(gcf, 'PaperPositionMode', 'auto');
-            print(confusionMatrixFileName, '-dpng'); 
+        title(sprintf('Matriz de confusão - %s',matrixTitle));
+        if nargin > 3
+            confusionMatrixFileName = strcat( resultPath, '\confusionMatrix');
+            pause
+            if ~exist(strcat(confusionMatrixFileName,'.png'), 'file')
+                set(gcf, 'PaperPositionMode', 'auto');
+                print(confusionMatrixFileName, '-dpng'); 
+            end
         end
-        close all;
+    else
+        title('Matriz de confusão');
     end
 end
 

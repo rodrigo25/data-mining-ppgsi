@@ -9,7 +9,7 @@ load('data/data_spambase.mat')
 [ Xtr, Ytr, Xt, Yt ] = holdout( X, Y, 0.7 ); % holdout cross-validation
 
 %TREINA CLASSIFICADOR
-[ A, B ] = MLPtreina( Xtr, Ytr, [], [], 5, 10 );
+[ A, B ] = MLPtreina( Xtr, Ytr, [], [], 5, 5 );
 
 %TESTA CLASSIFICADOR
 Y = MLPsaida( Xt, A, B );
