@@ -62,9 +62,9 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, Xt, Yt, classes, h, epochs, resa
         [~,majorClass] = max(nPerClass);
         nMajorClass = nPerClass(majorClass);
         if acc <= (nMajorClass / sum(nPerClass))
-           %t = t - 1;
-           %fprintf('Low accuracy, discarding classifier');
-           %continue;
+           t = t - 1;
+           fprintf('Low accuracy, discarding classifier');
+           continue;
         end
         
         %Yh_term - hypothesis confidence on the right labels
