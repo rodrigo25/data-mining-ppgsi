@@ -15,7 +15,7 @@ Xtr = [ones(N,1),Xtr];
 A = rand(mA, m0+1); %Pesos camada de escondida
 B = rand(mB, mA+1); %Pesos camada de saida
 
-alfa = .8; %taxa de aprendizado
+alfa = .01; %taxa de aprendizado
 
 it = 0; %contador de iteracoes
 
@@ -25,6 +25,7 @@ ERRO = [];
 alfas = [ alfa ];
 alfa0 = alfa;
 
+fig=figure;
 while it<maxIt
   it = it+1;
   
@@ -53,14 +54,13 @@ while it<maxIt
   B = B + deltaB;
   
   %Learning rate update
-  alfa = alfa0/( 1 + it*0.001);
-  
+  %alfa = alfa0/( 1 + it*0.001);
+  alfa = alfa0;
   %Stores some values for plotting
   alfas = [alfas;alfa];
   ERRO = [ERRO;EQM];
 
-   figure(1)
-   clf
+   clf(fig)
    %plot(Ytr,'r--')
    %hold on
    %plot(Y,'b')
@@ -72,8 +72,7 @@ while it<maxIt
    text(it, EQM, sprintf('it=%d',it));
 end
 
-close all;
-figure;
+clf(fig);
 plot(ERRO);
 title('EQM X Epocas');
 xlabel('Epocas');

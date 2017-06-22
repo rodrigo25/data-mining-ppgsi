@@ -25,10 +25,10 @@ for it=1:k
     
   
   %TREINA CLASSIFICADOR
-  [ A, B ] = MLP( Xtr, Ytr, [], [], hidLayers );
+  [ A, B ] = MLPtreina( Xtr, Ytr, [], [], hidLayers );
   
   %TESTA CLASSIFICADOR
-  [ Y ] = saidaMLP( Xt, A, B )
+  [ Y ] = MLPsaida( Xt, A, B );
 
   %DEFINE LIMIAR DE DECISAO
   Y(Y>=.5) = 1;
