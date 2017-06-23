@@ -1,4 +1,4 @@
-function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, resampleMode, nnArchMode)
+function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, discardMode, resampleMode, nnArchMode)
 % adaboostM2 pseudo-loss adaboost m2 (multi-class)
 % Xtr           - training set (N,ne)
 % Ytr           - training set labels, binary matrix (N,nc) nc = num classes
@@ -7,7 +7,11 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, resa
 % T             - Num of adaboost rounds
 % h             - hidden layer neurons count
 % nepocasMax    - max num of epochs
-% resample mode - 
+% discardMode  - 
+%                   0: no discarding of classifiers
+%                   1: discards the t-th classifier if guessing by major
+%                   class is better
+% resampleMode - 
 %                   0: no resample
 %                   1: resample before training t-th classifier
 % nnArchMode    - 
@@ -25,12 +29,16 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, resa
        error('Resample mode should be 0 or 1'); 
     end
     
+    if discardMode~=0 && discardMode~=1
+       error('Discard mode should be 0 or 1'); 
+    end
+    
     if nnArchMode~=0 && nnArchMode~=1
        error('NN arch mode should be 0 or 1'); 
     end
     % end validating input
 
-    [A, B, beta] = train(T, Xtr, Ytr, classes, h, nepocasMax, resampleMode, nnArchMode);
+    [A, B, beta] = train(T, Xtr, Ytr, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
     
     Yh = 0;
     for t=1:T
@@ -39,7 +47,7 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, resa
     sum(Ytr)
 end
 
-function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, resampleMode, nnArchMode)
+function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode, resampleMode, nnArchMode)
     
     % Notacao
     % N - num de instancias
@@ -96,16 +104,18 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, resampleMode
         Yh = result( Xtr, A_t, B_t );
         
         % Discard classifier if accuracy is too low
-        [~,Yh_] = max(Yh,[],2);
-        [~,Ytr_] = max(Ytr,[],2);
-        acc = multiclassConfusionMatrix( Ytr_, Yh_, classes, 1, sprintf('T=%d (training set)', t) );
-        [~,majorClass] = max(nPerClass);
-        nMajorClass = nPerClass(majorClass);
-        majorClassAcc = (nMajorClass / sum(nPerClass));
-        if acc <= majorClassAcc
-           t = t - 1;
-           fprintf('Low accuracy, discarding classifier. Random guessing would have acc=%f\n', majorClassAcc);
-           continue;
+        if discardMode == 1
+            [~,Yh_] = max(Yh,[],2);
+            [~,Ytr_] = max(Ytr,[],2);
+            acc = multiclassConfusionMatrix( Ytr_, Yh_, classes, 1, sprintf('T=%d (training set)', t) );
+            [~,majorClass] = max(nPerClass);
+            nMajorClass = nPerClass(majorClass);
+            majorClassAcc = (nMajorClass / sum(nPerClass));
+            if acc <= majorClassAcc
+               t = t - 1;
+               fprintf('Low accuracy, discarding classifier. Random guessing would have acc=%f\n', majorClassAcc);
+               continue;
+            end 
         end
         
         % Calculates pseudo-loss
@@ -116,8 +126,8 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, resampleMode
         %Yh_term_miss - hypothesis confidence on the miss-labels
         Yh_term_miss = zeros(N,nc-1);
         for i=1:N
-            [~,labelInd] = max(Ytr(i,:),[],2);
-            Yh_term_miss(i,:) = [Yh(i,1:labelInd-1) Yh(i,labelInd+1:end)];
+            [~,rightLabel] = max(Ytr(i,:),[],2);
+            Yh_term_miss(i,:) = [Yh(i,1:rightLabel-1) Yh(i,rightLabel+1:end)];
         end
         
         % pseudo-loss(t) = epsilon_t
@@ -218,10 +228,6 @@ function [A, B] = MLP(X, Yd, h, mE, V)
 
       fig = figure(2);
       clf(fig);
-      %plot(Ytr,'r--')
-      %hold on
-      %plot(Y,'b')
-      %grid
       plot(EQM);
       title(sprintf('EQM X Epocas (h=%d, mE=%d)',h,mE));
       xlabel('Epocas');

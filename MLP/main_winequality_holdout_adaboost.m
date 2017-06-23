@@ -15,7 +15,7 @@ function [] = main_winequality_holdout_adaboost()
     
     [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
 
-    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 1, 0);
+    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 0, 1, 0);
 
     fprintf('Adaboost global answer (%d components, %d hidden layer neurons, %d epochs)\n', T, h, nepocas);
     [~,Yh]= max(Yh,[],2);
