@@ -1,4 +1,4 @@
-function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, title, resultPath  )
+function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHandle, title, resultPath  )
 %multiclassConfusionMatrix cria e exibe uma matriz de confusao multiclasse.
 %	Yd - matriz (n x 1) com os rotulos do conjunto de dados
 %	Y - matriz (n x 1) com os rotulos preditos
@@ -6,12 +6,12 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, title, r
 %	resultPath - parametro opcional, quando definido implica na persistencia da
 %	imagem da matriz de confusao
    matrix = confusionmat( Yd, Y' );
-   if nargin > 4
-      plotConfusionMatrix( classes, matrix, title, resultPath );
+   if nargin > 5
+      plotConfusionMatrix( classes, matrix, figureHandle, title, resultPath );
+   elseif nargin > 4
+      plotConfusionMatrix( classes, matrix, figureHandle, title );
    elseif nargin > 3
-      plotConfusionMatrix( classes, matrix, title );
-   else 
-      plotConfusionMatrix( classes, matrix );
+      plotConfusionMatrix( classes, matrix, figureHandle );
    end
    
    %classesMetrics = getConfusionMetrics( matrix, classes );
@@ -19,8 +19,12 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, title, r
    fprintf('Accuracy is %.6f\n', accuracy);
 end
 
-function [] = plotConfusionMatrix( classes, matrix, matrixTitle, resultPath )
+function [] = plotConfusionMatrix( classes, matrix, figureHandle, matrixTitle, resultPath )
     
+    if nargin < 3
+       figureHandle = 1; 
+    end
+    figure(figureHandle);
     imagesc(matrix);            
     colormap(flipud(gray));  
 
@@ -47,9 +51,9 @@ function [] = plotConfusionMatrix( classes, matrix, matrixTitle, resultPath )
 	xlabel( 'Predito' );
     ylabel( 'Real' );
     
-    if nargin > 2
+    if nargin > 3
         title(sprintf('Matriz de confusão - %s',matrixTitle));
-        if nargin > 3
+        if nargin > 4
             confusionMatrixFileName = strcat( resultPath, '\confusionMatrix');
             pause
             if ~exist(strcat(confusionMatrixFileName,'.png'), 'file')
