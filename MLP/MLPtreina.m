@@ -25,7 +25,7 @@ ERRO = [];
 alfas = [ alfa ];
 alfa0 = alfa;
 
-fig=figure;
+fig=figure(1);
 while it<maxIt
   it = it+1;
   
@@ -60,6 +60,7 @@ while it<maxIt
   alfas = [alfas;alfa];
   ERRO = [ERRO;EQM];
 
+   fig=figure(1);
    clf(fig)
    %plot(Ytr,'r--')
    %hold on
