@@ -2,7 +2,7 @@ function [] = main_spambase_holdout_adaboost()
 
     T = 5; % adaboost rounds
     h = 5; % adaboost MLP components hidden layer neuron count
-    nepocas = 10; % adaboost MLP components max epoch count
+    nepocas = 30; % adaboost MLP components max epoch count
     
     load('data/data_spambase.mat')
 
@@ -15,7 +15,7 @@ function [] = main_spambase_holdout_adaboost()
     
     [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
 
-    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 1, 0, 1);
+    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 0, 1, 0);
    
     fprintf('Adaboost global answer (%d components, %d hidden layer neurons, %d epochs)\n', T, h, nepocas);
     [~,Yh]= max(Yh,[],2);

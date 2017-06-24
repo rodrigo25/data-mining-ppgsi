@@ -89,15 +89,16 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         end
         nPerClass = sum(Ytr)
         
-        V = ones(N,nc);
-        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
-
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
-           h = h + 10; 
+           h = h + 10;
+           %epochs = epochs + 250;
            lastNNArchChangedRound=t;
         end
-
+        
+        V = ones(N,nc);
+        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
+        
         % Trains the MLP 
         [A_t,B_t] = MLP(Xtr,Ytr,h,epochs,V);
         % Yh - MLPs hypothesis
@@ -136,7 +137,7 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         
         % Discards if pseudo-loss is too high
         if discardMode==0 && epsilon_t >= .5
-            fprintf('Pseudo-loss to high, discarding classifier %d\n', t);
+            fprintf('Pseudo-loss too high %f discarding classifier %d\n', epsilon_t, t);
             t = t - 1;
             continue;
         end
@@ -144,6 +145,14 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         fprintf('Adaboost round %d epsilon=%f\n', t, epsilon_t);
         
         D = D .* (beta_t .^ ( 1/2 *(1 + Yh_term - Yh_term_miss)));
+        
+        %{
+        [~,Ytrc] = max(Ytr,[],2);
+        [~,Yhc] = max(Yh,[],2);
+        D(Ytrc ~= Yhc,:) = 10 * D(Ytrc ~= Yhc,:);
+        D(Ytrc == Yhc,:) = D(Ytrc == Yhc,:) ./ 10;
+        %}
+        
         %Normalizes so sum(sum(D)) = 1
         D = D ./ sum(sum(D));
         
@@ -209,14 +218,14 @@ function [A, B] = MLP(X, Yd, h, mE, V)
       Y = 1./(1+exp(-Yin));
 
       %calcula o erro
-      err = V.*(Y-Yd);
+      err = (Y-Yd);
       eqm = sum(sum( err.^2 ))/N;
       if eqm<maxEqm
         break
       end;
 
       %Backpropagation
-      gradB = err.*(1-Y).*Y;
+      gradB = (V.*err).*(1-Y).*Y;
       gradA = (gradB*B(:,2:end)).*(Z.*(1-Z));
 
       deltaA = alfa * gradA' * X;
