@@ -8,7 +8,7 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, disc
 % h             - hidden layer neurons count
 % nepocasMax    - max num of epochs
 % discardMode  - 
-%                   0: no discarding of classifiers
+%                   0: discards the t-th classifier if pseudo-loss >= .5
 %                   1: discards the t-th classifier if guessing by major
 %                   class is better
 % resampleMode - 
@@ -90,7 +90,7 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         nPerClass = sum(Ytr)
         
         V = ones(N,nc);
-        V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
+        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
 
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
@@ -134,10 +134,18 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         epsilon_t = 1/2 * sum(sum( D .* (1 - Yh_term + Yh_term_miss) ));
         beta_t = epsilon_t / (1 - epsilon_t);
         
+        % Discards if pseudo-loss is too high
+        if discardMode==0 && epsilon_t >= .5
+            fprintf('Pseudo-loss to high, discarding classifier %d\n', t);
+            t = t - 1;
+            continue;
+        end
+        
         fprintf('Adaboost round %d epsilon=%f\n', t, epsilon_t);
         
-        D = D .* (beta_t .^ ( 1/2 *(1 + Yh_term - Yh_term_miss) ));
-        %D = normalization(D, 'minmax');
+        D = D .* (beta_t .^ ( 1/2 *(1 + Yh_term - Yh_term_miss)));
+        %Normalizes so sum(sum(D)) = 1
+        D = D ./ sum(sum(D));
         
         A{t} = A_t;
         B{t} = B_t;
