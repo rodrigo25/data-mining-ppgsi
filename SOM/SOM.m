@@ -32,7 +32,7 @@ DeltaMaxHist = zeros(itMax,D);
 WHist = cell(4,2);
 WHist{1,1} = W;
 WHist{1,2} = 0;
-indWHist = [itMax*0.33 itMax*0.66];
+indWHist = [round(itMax*0.33) round(itMax*0.66)];
 
 fprintf('Iterations:\n');
 
@@ -70,13 +70,13 @@ while (it<=itMax)
     %erro topologico da iteracao
     Dist(BMU) = Inf;
     [~,secondBMU] = min(Dist);
-    BMUsDistances = distance(neuronsGrid(BMU,:), neuronsGrid(secondBMU,:), 'e');
+    BMUsDistances = distance(neuronsGrid(BMU,:), neuronsGrid(secondBMU,:), 'm');
     if BMUsDistances > 1%sqrt(2)
       topolErrIt = topolErrIt + 1;
     end
     
-    % CALCULA OS PESOS DOS VIZINHOS DO BMU (PROCESSO DE COOPERACAO)
-    theta = neighborhood(neuronsGrid,radius,BMU); %Matriz de pesos para atualização dos vizinhos do BMU
+    % CALCULA A INFLUENCIA DA ATUALIZAÇÃO NOS VIZINHOS DO BMU (PROCESSO DE COOPERACAO)
+    theta = neighborhood(neuronsGrid,radius,BMU); %Matriz de influencia sobre a vizinhança do BMU
     
     % ATUALIZA OS PESOS W (PROCESSO DE ADAPTACAO SINAPTICA)
     P = repmat(p,Ns,1);
@@ -127,7 +127,7 @@ end
 
 function [theta] = neighborhood(neuronsGrid,radius,BMU)
   %Calcula a distancia de todos os neuronios ao BMU no Grid
-  D = distance(neuronsGrid(BMU,:),neuronsGrid,'e');
+  D = distance(neuronsGrid(BMU,:),neuronsGrid,'m');
   %Calcula a influencia da atualizacao sobre os neuronios pelo raio
   theta = exp(-D./(2*radius^2));
 end

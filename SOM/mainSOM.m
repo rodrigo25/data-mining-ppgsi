@@ -1,5 +1,5 @@
 %CARREGA DADOS
-%dataset = 't4.8k.mat';
+dataset = 't4.8k.mat';
 %dataset = 't4.8k-modified.mat';
 %dataset = 'path-based2';
 %dataset = 'test_rand1k';
@@ -7,7 +7,7 @@
 %dataset = 'test_points2';
 %dataset = 'test_points3';
 %dataset = 'test_S1';
-dataset = 'test_chainlink';
+%dataset = 'test_chainlink';
 
 load(['data/data_' dataset])
 
@@ -23,11 +23,11 @@ typeNormalization = 'zscore'; % zscore ou min-max
 %PARAMETRIZAÇÃO
 dim = [40 40]; % Dimensão do Grid de saida - dimention[Nx Ny] (Nx*Ny=Ns)
 alfaIni = .9; % Taxa de aprendizado inicial
-raioIni = 30; % Raio inicial delimitador da vizinhança de um neuronio
+raioIni = 15; % Raio inicial delimitador da vizinhança de um neuronio
 lambda = 32; % Desvio padrao da funcao de decaimento do alfa
 tau = 32; % Desvio padrao da funcao de decaimento do raio
 fDist = 'e'; % Função de distancia ('e' euclidiana, 'm' manhattan )
-itMax = 300; % Num maximo de iterações
+itMax = 100; % Num maximo de iterações
 
 
 
