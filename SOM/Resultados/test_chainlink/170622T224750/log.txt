@@ -1,0 +1,32 @@
+
+	 Log de Treinamento da Rede SOM
+
+ ---------------------------------------
+              Base de Dados             
+ ---------------------------------------
+ Nome: 						test_chainlink
+ Quantidade de Instâncias: 	10000
+ Dimensionalidade: 			3
+ Tipo de Normalização: 		zscore
+
+
+ ---------------------------------------
+         Parametrização da Rede         
+ ---------------------------------------
+ Dimensionalidade da saída: 40x40
+ Alfa Inicial: 				0.900
+ Raio Inicial: 				20
+ Lambda: 					32
+ Tau: 						32
+ Função de Distância: 		Euclidiana
+ Máximo de Iterações: 	    300
+ Topologia: 					Retangular
+ Função de Vizinhança: 		Gaussiana
+
+
+ ---------------------------------------
+               Resultados              
+ ---------------------------------------
+ Tempo de treinamento (s): 	1161.6627525
+ Erro de Quatização: 		0.0503957
+ Erro Topológico: 			0.3732000
