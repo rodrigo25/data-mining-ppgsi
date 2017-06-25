@@ -1,4 +1,4 @@
-function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, discardMode, resampleMode, nnArchMode)
+function Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest,classes, T, h, nepocasMax, discardMode, resampleMode, nnArchMode)
 % adaboostM2 pseudo-loss adaboost m2 (multi-class)
 % Xtr           - training set (N,ne)
 % Ytr           - training set labels, binary matrix (N,nc) nc = num classes
@@ -38,16 +38,17 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, disc
     end
     % end validating input
 
-    [A, B, beta, P] = train(T, Xtr, Ytr, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
+    [A, B, beta, P] = train(T, Xtr, Ytr, Xval, Yval, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
     
     Yh = 0;
     for t=1:T
-       Yh = Yh + log(1/beta(t))*result([Xtest repmat(1/(size(Xtest,1)),size(Xtest,1),1)], A{t}, B{t});
+       Yh = Yh + log(1/beta(t))*MLPsaida([Xtest repmat(1/size(Xtest,1),size(Xtest,1),1)], A{t}, B{t});
+       %Yh = Yh + log(1/beta(t))*MLPsaida(Xtest, A{t}, B{t});
     end
     sum(Ytr)
 end
 
-function [A, B, beta, P] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode, resampleMode, nnArchMode)
+function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, discardMode, resampleMode, nnArchMode)
     
     % Notacao
     % N - num de instancias
@@ -106,9 +107,12 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
         
         % Trains the MLP 
-        [A_t,B_t] = MLPtreina([Xtr P_t],Ytr,h,epochs,V);
+        [A_t,B_t] = MLPtreina([Xtr P_t],Ytr,[Xval repmat(1/size(Xval,1), size(Xval,1),1)],Yval,h,epochs,.01,0,0,V);
+        %[A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,.01,0,1,V);
+        
         % Yh - MLPs hypothesis
         Yh = MLPsaida([Xtr P_t], A_t, B_t);
+        %Yh = MLPsaida(Xtr, A_t, B_t);
         
         % Discard classifier if accuracy is too low
         if discardMode == 1
