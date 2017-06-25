@@ -1,6 +1,6 @@
 function [fileOut] = pre_processing(dataset,overwrite)
     if nargin < 2
-        overwrite = 0;
+        overwrite = -1;
     end
     if nargin < 1
         %SELECIONA DATASET
@@ -56,14 +56,21 @@ function [fileOut] = pre_processing(dataset,overwrite)
       preProcInfo.k = k;
 
       fileOut = ['../data/' dataset '_holdout']; %define o nome do arq de saida
-
-      if exist(fileOut, 'file') && overwrite == 0 %verifica se o arquivo ja existe
-        choice = questdlg('The file allready exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
-        if strcmp(choice,'No') 
-          return
-        end
+        
+      if overwrite == -1
+          if exist(fileOut, 'file') %verifica se o arquivo ja existe
+            choice = questdlg('The file allready exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
+            if strcmp(choice,'No')
+                overwrite = 0;
+            else
+                overwrite = 1;
+            end
+          end
       end
-
+      
+      if overwrite == 0
+         return; 
+      end
       save(fileOut,'Xtr','Ytr','Xval','Yval','Xtest','Ytest','preProcInfo'); %salva arq
 
     elseif strcmp(typeCrossValidation,'kfold')
@@ -88,13 +95,20 @@ function [fileOut] = pre_processing(dataset,overwrite)
           XvalFolds{k} = Xval;
           YvalFolds{k} = Yval;
       end
-      if exist([fileOut '.mat'], 'file') && overwrite == 0%verifica se o arquivo ja existe
-        choice = questdlg('The file already exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
-        if strcmp(choice,'No')
-          return
-        end
+      
+      if overwrite == -1
+          if exist([fileOut '.mat'], 'file') && overwrite == 0%verifica se o arquivo ja existe
+            choice = questdlg('The file already exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
+            if strcmp(choice,'No')
+                overwrite = 0;
+            else
+                overwrite = 1;
+            end
+          end          
       end
-
+      if overwrite == 0
+         return; 
+      end
       save(fileOut,'XtrFolds','YtrFolds','XvalFolds','YvalFolds','preProcInfo'); %salva arq
     end
 

@@ -7,9 +7,12 @@ load('data/data_spambase.mat')
 %SEPARACAO CONJ DE TREINAMENTO E TESTE
 %Xtr = X; Ytr = Y; Xt = X; Yt = Y; % trainda e testa com todos os dados
 [ Xtr, Ytr, Xt, Yt ] = holdout( X, Y, 0.7 ); % holdout cross-validation
+[ Xtr, Ytr, Xval, Yval ] = holdout( Xtr, Ytr, 0.66 ); % holdout cross-validation
 
 %TREINA CLASSIFICADOR
-[ A, B ] = MLPtreina( Xtr, Ytr, [], [], 5, 5 );
+[ A, B, MSEtrain, MSEval, epochsExecuted ] = MLPtreina( Xtr, Ytr, Xval, Yval, 5, 1000, .01, 2, 1 );
+
+epochsExecuted
 
 %TESTA CLASSIFICADOR
 Y = MLPsaida( Xt, A, B );

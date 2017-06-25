@@ -15,7 +15,7 @@ function [] = main_spambase_holdout_adaboost()
     [Y, classes] = multiclassY(Y);
     
     [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
-    [ Xtr, Ytr, Xval, Yval ] = holdout( Xtr, Ytr, 0.9 );
+    [ Xtr, Ytr, Xval, Yval ] = holdout( Xtr, Ytr, 0.99 );
 
     Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest, classes, T, h, nepocas, 0, 0, 0);
    

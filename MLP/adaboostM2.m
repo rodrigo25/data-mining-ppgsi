@@ -42,8 +42,8 @@ function Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest,classes, T, h, nepoc
     
     Yh = 0;
     for t=1:T
-       Yh = Yh + log(1/beta(t))*MLPsaida([Xtest repmat(1/size(Xtest,1),size(Xtest,1),1)], A{t}, B{t});
-       %Yh = Yh + log(1/beta(t))*MLPsaida(Xtest, A{t}, B{t});
+       %Yh = Yh + log(1/beta(t))*MLPsaida([Xtest repmat(1/size(Xtest,1),size(Xtest,1),1)], A{t}, B{t});
+       Yh = Yh + log(1/beta(t))*MLPsaida(Xtest, A{t}, B{t});
     end
     sum(Ytr)
 end
@@ -107,12 +107,12 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, 
         V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
         
         % Trains the MLP 
-        [A_t,B_t] = MLPtreina([Xtr P_t],Ytr,[Xval repmat(1/size(Xval,1), size(Xval,1),1)],Yval,h,epochs,.01,0,0,V);
-        %[A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,.01,0,1,V);
+        %[A_t,B_t] = MLPtreina([Xtr P_t],Ytr,[Xval repmat(1/size(Xval,1), size(Xval,1),1)],Yval,h,epochs,.01,0,0,V);
+        [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,.01,0,1,V);
         
-        % Yh - MLPs hypothesis
-        Yh = MLPsaida([Xtr P_t], A_t, B_t);
-        %Yh = MLPsaida(Xtr, A_t, B_t);
+        %Yh - MLPs hypothesis
+        %Yh = MLPsaida([Xtr P_t], A_t, B_t);
+        Yh = MLPsaida(Xtr, A_t, B_t);
         
         % Discard classifier if accuracy is too low
         if discardMode == 1
