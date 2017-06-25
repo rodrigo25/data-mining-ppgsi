@@ -38,16 +38,16 @@ function Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocasMax, disc
     end
     % end validating input
 
-    [A, B, beta] = train(T, Xtr, Ytr, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
+    [A, B, beta, P] = train(T, Xtr, Ytr, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
     
     Yh = 0;
     for t=1:T
-       Yh = Yh + log(1/beta(t))*result(Xtest, A{t}, B{t});
+       Yh = Yh + log(1/beta(t))*result([Xtest repmat(1/(size(Xtest,1)),size(Xtest,1),1)], A{t}, B{t});
     end
     sum(Ytr)
 end
 
-function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode, resampleMode, nnArchMode)
+function [A, B, beta, P] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode, resampleMode, nnArchMode)
     
     % Notacao
     % N - num de instancias
@@ -71,6 +71,8 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
     A = cell(T);
     B = cell(T);
     
+    P = cell(T);
+    
     % D - Distribution over miss-labels 
     % miss-labels = {(i,y)| i in {1;...;N} & y ~= yi }
     D = repmat(1/(N * nc-1),N,nc-1);
@@ -87,6 +89,10 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
             [Xtr, Ytr, D] = resample(Xtr0, Ytr0, D);
             lastResampledRound = t;
         end
+        P_t = sum(D,2);
+        P_t = P_t ./ sum(P_t);
+        P{t} = P_t;
+        
         nPerClass = sum(Ytr)
         
         % Changes MLP arch if needed
@@ -97,12 +103,12 @@ function [A, B, beta, D] = train(T, Xtr0, Ytr0, classes, h, epochs, discardMode,
         end
         
         V = ones(N,nc);
-        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
+        V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
         
         % Trains the MLP 
-        [A_t,B_t] = MLP(Xtr,Ytr,h,epochs,V);
+        [A_t,B_t] = MLPtreina([Xtr P_t],Ytr,h,epochs,V);
         % Yh - MLPs hypothesis
-        Yh = result( Xtr, A_t, B_t );
+        Yh = MLPsaida([Xtr P_t], A_t, B_t);
         
         % Discard classifier if accuracy is too low
         if discardMode == 1
@@ -181,76 +187,4 @@ function [Xtr, Ytr, D] = resample(Xtr, Ytr, D)
            end
         end
     end
-end
-
-function Y = result(X, A, B)
-    N = size(X,1);
-    X = [ones(N,1),X];
-    Zin = X*A';
-    Z = 1./(1+exp(-Zin));
-    Yin = [ones(N,1),Z]*B';
-    Y = 1./(1+exp(-Yin));
-end
-
-function [A, B] = MLP(X, Yd, h, mE, V)
-
-    [N, ne] = size(X);
-    ns = size(Yd,2);
-    X = [ones(N,1),X];
-
-    A = rand(h, ne+1); 
-    B = rand(ns, h+1); 
-
-    alfa0 = .01;
-    maxEqm = 1e-5;
-
-    EQM = [];
-    alfas = alfa0;
-    alfa = alfa0;
-
-    fig = figure(2);
-    for it=1:mE
-
-      %Feedfoward
-      Zin = X*A';
-      Z =  1./(1+exp(-Zin));
-      Yin = [ones(N,1),Z]*B';
-      Y = 1./(1+exp(-Yin));
-
-      %calcula o erro
-      err = (Y-Yd);
-      eqm = sum(sum( err.^2 ))/N;
-      if eqm<maxEqm
-        break
-      end;
-
-      %Backpropagation
-      gradB = (V.*err).*(1-Y).*Y;
-      gradA = (gradB*B(:,2:end)).*(Z.*(1-Z));
-
-      deltaA = alfa * gradA' * X;
-      deltaB = alfa * gradB' * [ones(N,1),Z];
-
-      %Weights update
-      A = A - deltaA;
-      B = B - deltaB;
-
-      %Learning rate update
-      %alfa = alfa0/(1 + it*0.05);
-      alfa = alfa0;
-
-      %Stores some values for plotting
-      alfas = [alfas;alfa];
-      EQM = [EQM;eqm];
-
-      fig = figure(2);
-      clf(fig);
-      plot(EQM);
-      title(sprintf('EQM X Epocas (h=%d, mE=%d)',h,mE));
-      xlabel('Epocas');
-      ylabel('Erro Quadratico Medio');
-      text(it, eqm, sprintf('it=%d',it));
-    end
-
-    close(fig);
 end

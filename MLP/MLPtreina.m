@@ -1,88 +1,137 @@
-function [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, mA, maxIt )
-% MLPtreina treina uma MLP
-% Xtr, Ytr - Conjunto de treinamento
-% Xval, Yval - Conjunto de validacao
-% mA - Numero de neuronios na camada escondida
-if nargin < 6
-    maxIt = 10000; %máximo de iteracoes
-end
+function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval, h, mE, alfa0, alfaDecay, earlyStopping, V)
+% MLPtreina treina uma MLP com 1 camada oculta para um dataset de N linhas,
+% ne colunas e nc classes.
+% X         - Training dataset, matriz (N,ne)
+% Yd        - Training labels (N,nc)
+% Xval      - Validation dataset
+% Ydval     - Validation labels
+% h         - Nº neuronios camada oculta
+% mE        - max iterations
+% alfa0     - Taxa de aprendizado inicial
+% alfaDecay     -
+%                   0: constante, sem decaimento
+%                   1: decaimento pela metade step (a cada 5 epocas)
+%                   2: decaimento baseado em dataset de validacao
+% earlyStopping -
+%                   0: nao para o treino se o MSE de validacao subir
+%                   1: para o treino se o MSE de validacao subir
+% V         - matriz (N,nc) de pesos para os erros, opcional
+    
+    [N, ne] = size(X);
+    ns = size(Yd,2);
+    
+    if nargin < 10
+        V = ones(N,ns);
+        if nargin < 9
+           earlyStopping = 0; 
+        end
+    end
+    
+    X = [ones(N,1),X]; % add bias
 
-[N, m0] = size(Xtr);
-mB = size(Ytr,2);
-Xtr = [ones(N,1),Xtr];
+    A = rand(h, ne+1); 
+    B = rand(ns, h+1); 
 
-%Inicializando pesos
-A = rand(mA, m0+1); %Pesos camada de escondida
-B = rand(mB, mA+1); %Pesos camada de saida
+    maxMSE = 1e-5;
 
-alfa = .01; %taxa de aprendizado
+    MSEtrain = [];
+    MSEval = [];
+    alfa = alfa0;
+    minAlfa = .001;
+    epochsExecuted = 0;
 
-it = 0; %contador de iteracoes
+    for it=1:mE
+      
+      epochsExecuted = it;
+      
+      %Feedfoward
+      Zin = X*A';
+      Z =  1./(1+exp(-Zin));
+      Yin = [ones(N,1),Z]*B';
+      Y = 1./(1+exp(-Yin));
 
-maxErr = 1e-5;
+      %Training error
+      err = (Y-Yd);
+      mse = sum(sum( err.^2 ))/N;
+    
+      %Validation error
+      Yval = MLPsaida(Xval,A,B);
+      errVal = (Yval-Ydval);
+      mseVal = sum(sum( errVal.^2 ))/size(Xval,1);
+     
+      %Backpropagation
+      gradB = (V.*err).*(1-Y).*Y;
+      gradA = (gradB*B(:,2:end)).*(Z.*(1-Z));
 
-ERRO = [];
-alfas = [ alfa ];
-alfa0 = alfa;
+      deltaA = alfa * gradA' * X;
+      deltaB = alfa * gradB' * [ones(N,1),Z];
 
-fig=figure(1);
-while it<maxIt
-  it = it+1;
-  
-  %Feedfoward
-  Zin = Xtr*A';
-  Z = 1./(1+exp(-Zin));
-  Yin = [ones(N,1),Z]*B';
-  Y = 1./(1+exp(-Yin)); %func(Yin);
-  
-  %calcula o erro
-  err = (Ytr - Y);
-  EQM = sum(sum(err.^2))/N;
-  if EQM<maxErr
-    break
-  end;
-  
-  %Backpropagation
-  gradB = err.*(1-Y).*Y;
-  gradA = (gradB*B(:,2:end)).*(Z.*(1-Z));
-  
-  deltaA = alfa * gradA' * Xtr;
-  deltaB = alfa * gradB' * [ones(N,1),Z];
-  
-  %Weights update
-  A = A + deltaA;
-  B = B + deltaB;
-  
-  %Learning rate update
-  %alfa = alfa0/( 1 + it*0.001);
-  alfa = alfa0;
-  %Stores some values for plotting
-  alfas = [alfas;alfa];
-  ERRO = [ERRO;EQM];
+      A = A - deltaA;
+      B = B - deltaB;
+      
+      if mse<maxMSE
+          break;
+      end
+      
+      if mod(it,20) == 0
+         savedA = A;
+         savedB = B;
+      end
+      
+      % if early stopping is enabled
+      % and if the last 20 epochs show no improvement
+      if earlyStopping && it > 1 && mod(it-1,20) == 0 && mseVal >= MSEval(it-1)
+          % check last epochs improvements
+          % assume no improvement
+          lastEpochsNoImprovement = 1;
+          for i=19:-1:1
+              if MSEval(it-20+i) < MSEval(it-20+i-1) 
+                  % some improvement found
+                  lastEpochsNoImprovement = 0;
+                  break;
+              end
+          end
+          if lastEpochsNoImprovement == 1
+              % Restores previously saved weights
+              A = savedA;
+              B = savedB;
+              % stops execution and returns
+              break;
+          end
+      end
+      
+      %Learning rate update
+      if alfaDecay == 0
+          alfa = alfa0;
+      elseif alfaDecay == 1 && mod(it,5) == 0 && alfa > minAlfa
+          alfa = 1/2 * alfa;
+      elseif alfaDecay == 2 && isempty(MSEval) == 0 && alfa > minAlfa
+          if(MSEval(it-1) <= mseVal)
+            alfa = 1/2 * alfa; 
+            fprintf('Alfa = %f (decrease, val dataset)\n', alfa);
+          %elseif alfa < .5 && it > 20 && mean(MSEval((it-20):it-1)) == mseVal
+          %    alfa = 2 * alfa; 
+          %    fprintf('Alfa = %f (increase,val dataset)\n', alfa);
+          end
+      end
 
-   fig=figure(1);
-   clf(fig)
-   %plot(Ytr,'r--')
-   %hold on
-   %plot(Y,'b')
-   %grid
-   plot(ERRO);
-   title('EQM X Epocas');
-   xlabel('Epocas');
-   ylabel('Erro Quadratico Medio');
-   text(it, EQM, sprintf('it=%d',it));
-end
+      %Stores some values for plotting
+      MSEtrain = [MSEtrain;mse];
+      MSEval = [MSEval;mseVal];
+      
+      %{
+      figure(1)
+      clf;
+      plot(MSEtrain, 'b');
+      hold on
+      plot(MSEval, 'r');
+      title(sprintf('EQM X Epocas (h=%d, mE=%d)',h,mE)); 
+      xlabel('Epocas');
+      ylabel('Erro Quadratico Medio');            
+      legend('train', 'validation');
+      %}
+      %fprintf('train = %.8f\tval = %.8f\n',mse,mseVal);
+    end
 
-clf(fig);
-plot(ERRO);
-title('EQM X Epocas');
-xlabel('Epocas');
-ylabel('Erro Quadratico Medio');
-
-%figure;
-%plot(alfas);
-%title('Alfa');
-
-fprintf('Iterations: %d\n', it);
-
+    %close(figure(1));
 end

@@ -1,6 +1,6 @@
 function [] = main_winequality_holdout_adaboost()
 
-    T = 5; % adaboost rounds
+    T = 20; % adaboost rounds
     h = 30; % adaboost MLP components hidden layer neuron count
     nepocas = 1000; % adaboost MLP components max epoch count
     
@@ -13,7 +13,13 @@ function [] = main_winequality_holdout_adaboost()
     
     [Y, classes] = multiclassY(Y);
     
-    [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
+    holdoutFileName = 'winequality_red_holdout.mat';
+    if exist(holdoutFileName,'file') == 2
+        load(holdoutFileName);
+    else
+        [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
+        save('winequality_red_holdout', 'Xtr', 'Ytr', 'Xtest', 'Ytest'); 
+    end
 
     Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 0, 1, 0);
 

@@ -1,53 +1,120 @@
-load('data_winequality-red.mat');
-%load('data_winequality-white.mat');
+function [] = main_winequality()
+    load('data_winequality-red.mat');
+    %load('data_winequality-white.mat');
 
-N = size(X,1);
+    N = size(X,1);
 
-% Z-SCORE NORALIZATION
-X = (X-repmat(mean(X),N,1))./repmat(std(X),N,1); 
+    % Z-SCORE NORALIZATION
+    X = (X-repmat(mean(X),N,1))./repmat(std(X),N,1); 
 
-[Yd, classes] = multiclassY(Y);
+    [Yd, classes] = multiclassY(Y);
 
-% SEPARACAO CONJ DE TREINAMENTO E TESTE
-%Xtr = X; % teste com todos os dados
-%Ytr = Y;
+    % SEPARACAO CONJ DE TREINAMENTO E TESTE
+    variablesFileName = 'winequality_red_kfold.mat';
+    if exist(variablesFileName,'file') == 2
+        load(variablesFileName);
+    else
+        % holdout
+        %[ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
 
-[ Xtr, Ytr, Xt, Yt ] = holdout( X, Yd, 0.7 ); % holdout cross-validation
-%[ X_folds, Y_folds ] = kfoldCV( X, Yd, k );   % k-fold cross-validation
+        % k-fold
+         K =5;
+        [ XtrFolds, YtrFolds ] = kfoldCV( X, Yd, K );
+        %save('winequality_red_holdout', 'Xtr', 'Ytr', 'Xtest', 'Ytest'); 
+        XvalFolds = cell(K);
+        YvalFolds = cell(K);
+        for i=1:K
+            Xtr = XtrFolds{i};
+            Ytr = YtrFolds{i};
+            [ Xtr, Ytr, Xval, Yval ] = holdout( Xtr, Ytr, 0.66 );
+            XtrFolds{i} = Xtr;
+            YtrFolds{i} = Ytr;
+            XvalFolds{i} = Xval;
+            YvalFolds{i} = Yval;
+        end
+        save('winequality_red_kfold', 'K', 'XtrFolds', 'YtrFolds', 'XvalFolds', 'YvalFolds');
+    end
 
-[~,Ytc] = max(Yt,[],2);
+    neurons = 10:5:80;
+    epochs = [500];
 
-params = {
-    20 500; 
-    20 1000; 
-    25 500; 
-    25 1000; 
-    30 500;
-    30 1000;
-    35 500;
-    35 1000;
-    40 500;
-    40 1000;
-    45 500;
-    45 1000;
-    };
-accuracies = zeros(size(params,1),1);
+    alfaApproaches = [0 1 2]; %0 fixed alfa,  1 - step-decay,  2 validation-error-decay
 
-for i=1:size(params,1)
-    h = params{i,1};
-    epochs = params{i,2};
-    fprintf('h = %d epochs = %d\n', h, epochs);
-    
-    % TREINA MLP
-    [ A, B ] = MLPtreina( Xtr, Ytr, [], [], h, epochs );
+    accuracies = zeros(length(neurons),length(epochs));
+    epochsExecuted = zeros(length(neurons),length(epochs));
 
-    % CALCULA SAIDA
-    Y = MLPsaida( Xt, A, B );
+    for i=1:length(neurons)
+        for j=1:length(epochs)
+            for a=1:length(alfaApproaches)
+                h = neurons(i);
+                maxEpochs = epochs(j);
+                alfaApproach = alfaApproaches(a);
 
-    [~,Yc] = max(Y,[],2);
+                resultFileDir = ['winequality' '\' 'red' '\' 'kfold' '\'];
+                if ~exist(resultFileDir, 'dir')
+                    mkdir(resultFileDir);
+                end
+                resultFileName = [resultFileDir sprintf('h%d_maxEpochs%d_alfa%d', h, maxEpochs, alfaApproach)];
+                if exist([resultFileName '.mat'], 'file') == 2
+                   continue; 
+                end
+                
+                totalAcc = 0;
+                totalEpochs = 0;
+                for k=1:K 
+                    [Xtr, Ytr, Xtest, Ytest, Xval, Yval] = createDatasets(XtrFolds, YtrFolds, XvalFolds, YvalFolds, k);
+                    for t=1:30
+                        fprintf('h = %d epochs = %d alfaApproach=%d k=%d t=%d\n', h, maxEpochs, alfaApproach, k, t);
+                        if alfaApproach==0 %fixed
+                            % TREINA MLP
+                            [ A, B, ~, ~, ep ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .01, 0, 1 );
+                        elseif alfaApproach==1 %step decay
+                            [ A, B, ~, ~, ep ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .2, 1, 1 );
+                        elseif alfaApproach==2 %validation based decay
+                            [ A, B, ~, ~, ep ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .2, 2, 1 );
+                        end
 
-    [acc, ~ ] = multiclassConfusionMatrix( Ytc, Yc, classes, 2 );
-    accuracies(i) = acc;    
+                        % CALCULA SAIDA
+                        Yc = MLPsaida( Xtest, A, B );
+
+                        [~,Ytc] = max(Ytest,[],2);
+                        [~,Yc] = max(Yc,[],2); 
+                        
+                        [acc, ~ ] = multiclassConfusionMatrix( Ytc, Yc, classes ); 
+                        totalAcc = totalAcc + acc;
+                        totalEpochs = totalEpochs + ep;
+                    end
+                    
+                    accuracies(i,j) = accuracies(i,j) + ( totalAcc / 30);
+                    epochsExecuted(i,j) = epochsExecuted(i,j) + ( totalEpochs / 30); 
+                end
+                
+                foldsMeanAcc = accuracies(i,j) / K;
+                foldsMeanEpochs = epochsExecuted(i,j) / K;
+                accuracies(i,j) = foldsMeanAcc;      
+                epochsExecuted(i,j) = foldsMeanEpochs;
+                save(resultFileName, 'foldsMeanAcc', 'foldsMeanEpochs');
+            end
+        end
+    end
+
+    save(['winequality' '\' 'red' '\' 'kfold' '\' 'means'], 'accuracies', 'epochsExecuted');
 end
 
-accuracies
+function [Xtr, Ytr, Xtest, Ytest, Xval, Yval] = createDatasets(XtrFolds, YtrFolds, XvalFolds, YvalFolds, k)
+    [Xtr, Ytr, Xtest, Ytest] = createFoldDatasets(XtrFolds, YtrFolds, k);
+    [Xval, Yval, ~, ~] = createFoldDatasets(XvalFolds, YvalFolds, k);
+end
+
+function [X, Y, Xk, Yk] = createFoldDatasets(XFolds, YFolds, k)
+    
+    Xk = XFolds{k};
+    Yk = YFolds{k}; 
+  
+    X = XFolds;
+    Y = YFolds;
+    X{k} = [];
+    Y{k} = [];
+    X = cell2mat(X(:));
+    Y = cell2mat(Y(:));
+end

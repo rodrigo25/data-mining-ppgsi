@@ -6,12 +6,14 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
 %	resultPath - parametro opcional, quando definido implica na persistencia da
 %	imagem da matriz de confusao
    matrix = confusionmat( Yd, Y' );
-   if nargin > 5
-      plotConfusionMatrix( classes, matrix, figureHandle, title, resultPath );
-   elseif nargin > 4
-      plotConfusionMatrix( classes, matrix, figureHandle, title );
-   elseif nargin > 3
-      plotConfusionMatrix( classes, matrix, figureHandle );
+   if nargin < 5
+      if nargin > 3
+          plotConfusionMatrix( classes, matrix, figureHandle );          
+      elseif nargin == 4
+          plotConfusionMatrix( classes, matrix, figureHandle, title );
+      end
+   else
+        plotConfusionMatrix( classes, matrix, figureHandle, title, resultPath );
    end
    
    %classesMetrics = getConfusionMetrics( matrix, classes );
