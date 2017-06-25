@@ -16,6 +16,10 @@ function [ X_folds, Y_folds ] = kfoldCV( X, Y, k )
     %Calcula intervalo de indice dos dados que formarao o fold
     ini = ((fold-1)*tamFold)+1;
     fim = ini+tamFold-1;
+  
+    if (fim>N)
+      fim = N;
+    end
     
     X_folds{fold} = X(ini:fim,:); %Define os dados para o fold
     Y_folds{fold} = Y(ini:fim,:);
