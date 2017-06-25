@@ -11,7 +11,8 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
 % alfaDecay     -
 %                   0: constante, sem decaimento
 %                   1: decaimento pela metade step (a cada 5 epocas)
-%                   2: decaimento baseado em dataset de validacao
+%                   2: dinamica, cai 10% se o erro do dataset de validacao
+%                   sobe e sobe 10% caso contrario
 % earlyStopping -
 %                   0: nao para o treino se o MSE de validacao subir
 %                   1: para o treino se o MSE de validacao subir
@@ -38,6 +39,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
     MSEval = [];
     alfa = alfa0;
     minAlfa = .001;
+    maxAlfa = .9;
     epochsExecuted = 0;
 
     for it=1:mE
@@ -104,14 +106,14 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       if alfaDecay == 0
           alfa = alfa0;
       elseif alfaDecay == 1 && mod(it,5) == 0 && alfa > minAlfa
-          alfa = 1/2 * alfa;
-      elseif alfaDecay == 2 && isempty(MSEval) == 0 && alfa > minAlfa
-          if(MSEval(it-1) <= mseVal)
-            alfa = 1/2 * alfa; 
-            fprintf('Alfa = %f (decrease, val dataset)\n', alfa);
-          %elseif alfa < .5 && it > 20 && mean(MSEval((it-20):it-1)) == mseVal
-          %    alfa = 2 * alfa; 
-          %    fprintf('Alfa = %f (increase,val dataset)\n', alfa);
+          alfa = .5 * alfa;
+      elseif alfaDecay == 2 && it > 1 
+          if MSEval(it-1) < mseVal
+              if alfa > minAlfa
+                  alfa = alfa * .9;
+              end
+          elseif alfa < maxAlfa
+              alfa = alfa * 1.1;
           end
       end
 
@@ -131,6 +133,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       legend('train', 'validation');
       %}
       %fprintf('train = %.8f\tval = %.8f\n',mse,mseVal);
+      %fprintf('%.8f\n',alfa);
     end
 
     %close(figure(1));
