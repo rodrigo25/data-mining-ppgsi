@@ -1,4 +1,4 @@
-function [] = main_winequality()
+function [accuracies, epochsExecuted] = main_winequality()
     load('data_winequality-red.mat');
     %load('data_winequality-white.mat');
 
@@ -8,6 +8,7 @@ function [] = main_winequality()
     load(fileName);
    
     K = preProcInfo.k;
+    classes = preProcInfo.classes;
     neurons = 10:10:100;
     epochs = 500;
 
@@ -25,7 +26,6 @@ function [] = main_winequality()
                     if exist([resultFileName '.mat'], 'file') == 2
                        continue; 
                     end
-                    fprintf('h = %d epochs = %d alfaApproach=%d k=%d t=%d\n', h, maxEpochs, alfaApproach, k, t);
                     [ A, B, ~, ~, ep ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .01, 0, 1 );
                     Yc = MLPsaida( Xtest, A, B );
                     [~,Ytc] = max(Ytest,[],2);

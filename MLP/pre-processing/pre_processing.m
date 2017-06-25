@@ -57,20 +57,20 @@ function [fileOut] = pre_processing(dataset,overwrite)
 
       fileOut = ['../data/' dataset '_holdout']; %define o nome do arq de saida
         
-      if overwrite == -1
-          if exist(fileOut, 'file') %verifica se o arquivo ja existe
+      if exist(fileOut, 'file') %verifica se o arquivo ja existe
+        if overwrite == -1
             choice = questdlg('The file allready exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
             if strcmp(choice,'No')
                 overwrite = 0;
             else
                 overwrite = 1;
             end
-          end
+        end
+        if overwrite == 0
+            return; 
+        end  
       end
       
-      if overwrite == 0
-         return; 
-      end
       save(fileOut,'Xtr','Ytr','Xval','Yval','Xtest','Ytest','preProcInfo'); %salva arq
 
     elseif strcmp(typeCrossValidation,'kfold')
@@ -96,18 +96,18 @@ function [fileOut] = pre_processing(dataset,overwrite)
           YvalFolds{k} = Yval;
       end
       
-      if overwrite == -1
-          if exist([fileOut '.mat'], 'file') && overwrite == 0%verifica se o arquivo ja existe
+      if exist([fileOut '.mat'], 'file') && overwrite == 0%verifica se o arquivo ja existe
+        if overwrite == -1
             choice = questdlg('The file already exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
             if strcmp(choice,'No')
                 overwrite = 0;
             else
                 overwrite = 1;
             end
-          end          
-      end
-      if overwrite == 0
-         return; 
+        end          
+        if overwrite == 0
+            return; 
+        end
       end
       save(fileOut,'XtrFolds','YtrFolds','XvalFolds','YvalFolds','preProcInfo'); %salva arq
     end
