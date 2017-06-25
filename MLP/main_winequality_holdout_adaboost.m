@@ -1,6 +1,6 @@
 function [] = main_winequality_holdout_adaboost()
 
-    T = 20; % adaboost rounds
+    T = 5; % adaboost rounds
     h = 30; % adaboost MLP components hidden layer neuron count
     nepocas = 1000; % adaboost MLP components max epoch count
     
@@ -20,8 +20,9 @@ function [] = main_winequality_holdout_adaboost()
         [ Xtr, Ytr, Xtest, Ytest ] = holdout( X, Y, 0.7 );
         save('winequality_red_holdout', 'Xtr', 'Ytr', 'Xtest', 'Ytest'); 
     end
-
-    Yh = adaboostM2(Xtr, Ytr, Xtest, Ytest, classes, T, h, nepocas, 0, 1, 0);
+    
+    [ Xtr, Ytr, Xval, Yval ] = holdout( Xtr, Ytr, 0.99 );
+    Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest, classes, T, h, nepocas, 0, 1, 0);
 
     fprintf('Adaboost global answer (%d components, %d hidden layer neurons, %d epochs)\n', T, h, nepocas);
     [~,Yh]= max(Yh,[],2);
@@ -30,7 +31,7 @@ function [] = main_winequality_holdout_adaboost()
     multiclassConfusionMatrix( Ytest, Yh, classes, 2, 'Adaboost' );
     
     % MLP normal para comparar
-    [ A, B ] = MLPtreina( Xtr, Ytr, [], [], h, nepocas);
+    [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, nepocas, .01, 0, 1);
     Y = MLPsaida( Xtest, A, B );
     [~,Y] = max(Y,[],2);
     fprintf('MLP answer (%d hidden layer neurons, %d epochs)\n', h, nepocas);
