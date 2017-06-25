@@ -9,20 +9,21 @@ function [accuracies, epochsExecuted] = main_winequality()
    
     K = preProcInfo.k;
     classes = preProcInfo.classes;
-    neurons = 10:10:100;
-    epochs = 500;
+    neurons = [3 5 7 10:10:100];
+    epochs = [200 500 1000 2000];
 
     resultFileDir = ['grid' '\' 'winequality' '\' 'red' '\' 'kfold' '\'];
     if ~exist(resultFileDir, 'dir')
         mkdir(resultFileDir);
-        for i=1:length(neurons)
-            h = neurons(i);
-            maxEpochs = epochs;
-
+    end
+    for i=1:length(neurons)
+        h = neurons(i);
+        for j=1:length(epochs)
+            maxEpochs = epochs(j);
             for k=1:K 
                 [Xtr, Ytr, Xtest, Ytest, Xval, Yval] = createDatasets(XtrFolds, YtrFolds, XvalFolds, YvalFolds, k);
                 for t=1:30
-                    resultFileName = [resultFileDir sprintf('h%d_k%d_t%d', h, k, t)];
+                    resultFileName = [resultFileDir sprintf('maxEpochs%d_h%d_k%d_t%d', maxEpochs, h, k, t)];
                     if exist([resultFileName '.mat'], 'file') == 2
                        continue; 
                     end
@@ -31,10 +32,10 @@ function [accuracies, epochsExecuted] = main_winequality()
                     [~,Ytc] = max(Ytest,[],2);
                     [~,Yc] = max(Yc,[],2); 
                     [acc, ~ ] = multiclassConfusionMatrix( Ytc, Yc, classes ); 
-                    fprintf('h = %d\tk = %d\tt = %d\tacc = %f\tep=%d\n', h, k, t, acc, ep);
+                    fprintf('h = %d\tk = %d\tt = %d\tacc = %f\tmaxEpochs = %d\tep = %d\n', h, k, t, acc, maxEpochs, ep);
                     save(resultFileName, 'acc', 'ep');
                 end
-            end
+            end 
         end
     end
 
@@ -42,8 +43,8 @@ function [accuracies, epochsExecuted] = main_winequality()
     if ~exist(plotsDir, 'dir')
         mkdir(plotsDir);
     end
-    neuronsAccuracyImpactPlotFile = [plotsDir 'neuronios_acuracia'];
-    if exist(neuronsAccuracyImpactPlotFile, 'file') ~= 2
+    for j=1:length(epochs)
+        maxEpochs = epochs(j);
         accuracies = zeros(length(neurons),1);
         epochsExecuted = zeros(length(neurons),1);
         for i=1:length(neurons)
@@ -52,7 +53,7 @@ function [accuracies, epochsExecuted] = main_winequality()
             totalEp = 0;
             for k=1:K
                 for t=1:30
-                    load([resultFileDir sprintf('h%d_k%d_t%d', h, k, t)]);
+                    load([resultFileDir sprintf('maxEpochs%d_h%d_k%d_t%d', maxEpochs, h, k, t)]);
                     totalAcc = totalAcc + acc;
                     totalEp = totalEp + ep;
                 end 
@@ -65,12 +66,15 @@ function [accuracies, epochsExecuted] = main_winequality()
             accuracies(i) = totalAcc;
             epochsExecuted(i) = totalEp;
         end
-
-        plot(neurons, accuracies);
-        xlabel('Neuronios');
-        ylabel('Acuracia');
-        title('Qtde. de neuronios na camada oculta X Acuracia');
-        print(neuronsAccuracyImpactPlotFile, '-dpng'); 
+        
+        neuronsAccuracyImpactPlotFile = [plotsDir 'neuronios_acuracia_' maxEpochs];
+        if exist(neuronsAccuracyImpactPlotFile, 'file') ~= 2
+            plot(neurons, accuracies);
+            xlabel('Neuronios');
+            ylabel('Acuracia');
+            title(sprintf('Qtde. de neuronios na camada oculta X Acuracia (max %d epocas)', maxEpochs));
+            print(neuronsAccuracyImpactPlotFile, '-dpng'); 
+        end        
     end
 end
 

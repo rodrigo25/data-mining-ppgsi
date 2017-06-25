@@ -7,7 +7,7 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
 %	imagem da matriz de confusao
    matrix = confusionmat( Yd, Y' );
    if nargin < 6
-      if nargin > 4
+      if nargin == 4
           plotConfusionMatrix( classes, matrix, figureHandle );          
       elseif nargin == 5
           plotConfusionMatrix( classes, matrix, figureHandle, title );

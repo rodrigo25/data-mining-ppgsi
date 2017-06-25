@@ -1,8 +1,8 @@
 function [] = main_spambase_holdout_adaboost()
 
     T = 5; % adaboost rounds
-    h = 5; % adaboost MLP components hidden layer neuron count
-    nepocas = 50; % adaboost MLP components max epoch count
+    h = 10; % adaboost MLP components hidden layer neuron count
+    nepocas = 400; % adaboost MLP components max epoch count
     
     %fileName = pre_processing('data_spambase',1);
     %load(fileName);
