@@ -1,15 +1,15 @@
 
 %DEFINE NOME DO TESTE
-%testName = 'Test1_MLPclodoaldo';
-testName = 'Test2_MLPalfaAdaptativo';
+testName = 'Test1_MLPclodoaldo';
+%testName = 'Test1_MLPalfaAdaptativo';
 
 %SELECIONA ALGORITMOS PARA EXECUTAR
-%Algoritmos = {'MLP_clodoaldo'};
-Algoritmos = {'MLP_alfaAdaptativo'};
+Algoritmos = {'MLP_clodoaldo'};
+%Algoritmos = {'MLP_alfaAdaptativo'};
 totalAlgoritmos = length(Algoritmos);
 
 %SELECIONA VARIACAO DE NEURONIOS NA CAMADA OCULTA
-Neuronios = [10 50 100];
+Neuronios = [10 50 100 200];
 %Neuronios = 20:20:200;
 totalNeuronios = length(Neuronios);
 
@@ -38,7 +38,7 @@ for a=1:totalAlgoritmos % iteracao dos algoritmos
     fprintf(['\n\n\n#### ' num2str(Neuronios(n)) ' Neurônios na Camada Econdida ####\n']);
     
     [TPR, FPR] = spambase_kfoldCV(Algoritmos{a}, Neuronios(n), dirName);
-    ROCdata{a,n} = {TPR FPR};
+    ROCdata(1,1) = [2 3]
     %plot( FPR, TPR, 'DisplayName',[Algoritmos{a} ' com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
     plot( FPR, TPR, 'DisplayName',['MLP Clodoaldo com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
     
@@ -52,4 +52,3 @@ legend('show')
 title('ROC')
 
 print(im_roc,[dirName 'ROC'],'-dpng');
-save([dirName 'ROCdata'],'ROCdata');

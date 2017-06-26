@@ -1,4 +1,4 @@
-function [ A, B, ERRO, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, mA, maxIt )
+function [ A, B, ERROtr, ERROval, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, mA, maxIt )
 % MLPtreina treina uma MLP
 % Xtr, Ytr - Conjunto de treinamento
 % Xval, Yval - Conjunto de validacao
@@ -17,7 +17,7 @@ A = rand(mA, m0+1); %Pesos randomicos na camada de escondida
 B = rand(mB, mA+1); %Pesos randomicos na camada de saida
 
 %INICIALIZANDO VARIAVEIS
-alfa = .9; %taxa de aprendizado inicial
+alfa = .1; %taxa de aprendizado inicial
 it = 0; %contador de iteracoes
 maxErr = 1e-5; %Valor de erro aceito para parar o processo
 
@@ -25,20 +25,17 @@ maxErr = 1e-5; %Valor de erro aceito para parar o processo
 [ Y ] = MLPsaida( Xtr, (A), (B) );
 EQM = sum(sum((Ytr - Y).^2))/N;
 
-ERRO = [EQM]; %Vetor com historico de erros
+[ Y ] = MLPsaida( Xval, (A), (B) );
+EQMval = sum(sum((Yval - Y).^2))/N;
+
+ERROtr = [EQM]; %Vetor com historico de erros
+ERROval = [EQMval]; %Vetor com historico de erros de validacao
 ALFA = [alfa]; %Vetor com historico de alfas
 
 fprintf('Iterações: ')
 %PROCESSO ITERATIVO
 while it<maxIt 
-  it = it+1;
-  
-  if mod(it,100)==0
-    fprintf(' %d ',it)
-    if mod(it,1000)==0
-      fprintf(' \n')
-    end
-  end
+
     
   %FEEDFOWARD
   Zin = [ones(N,1),Xtr]*A';
@@ -67,11 +64,26 @@ while it<maxIt
   [ newY ] = MLPsaida( Xtr, (A+deltaA), (B+deltaB) );
   newEQM = sum(sum((Ytr - newY).^2))/N;
   
-  if (newEQM<=EQM) %Se o novo erro diminuir (referente a ultima atualizacao)
+  if (newEQM<EQM) %Se o novo erro diminuir (referente a ultima atualizacao)
     A = A + deltaA; %Atualiza os pesos da camada escondida A
     B = B + deltaB; %Atualiza os pesos da camada de saida B
     alfa = alfa*1.1; %Aumenta o alfa em 10%
-    ERRO = [ERRO;newEQM]; %Armazena o erro
+    ERROtr = [ERROtr;newEQM]; %Armazena o erro
+    
+    %Calcula erro de validacao
+    [ newYval ] = MLPsaida( Xval, (A), (B) );
+    newEQMval = sum(sum((Yval - newYval).^2))/N;
+    ERROval = [ERROval;newEQMval]; %Armazena o erro de validacao
+    
+    it = it+1;
+  
+    if mod(it,100)==0
+      fprintf(' %d ',it)
+      if mod(it,1000)==0
+        fprintf(' \n')
+      end
+    end
+    
   else %Senao
     alfa = alfa*0.9; %Diminui o alfa em 10%
   end
