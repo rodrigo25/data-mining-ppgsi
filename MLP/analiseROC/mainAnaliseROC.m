@@ -40,7 +40,8 @@ for a=1:totalAlgoritmos % iteracao dos algoritmos
     [TPR, FPR] = spambase_kfoldCV(Algoritmos{a}, Neuronios(n), dirName);
     ROCdata{a,n} = {TPR FPR};
     %plot( FPR, TPR, 'DisplayName',[Algoritmos{a} ' com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
-    plot( FPR, TPR, 'DisplayName',['MLP Clodoaldo com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
+    %plot( FPR, TPR, 'DisplayName',['MLP Clodoaldo com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
+    plot( FPR, TPR, 'DisplayName',['MLP Adaptativo ' num2str(Neuronios(n)) ' neur']); %Plota a curva ROC do componente
     
   end
 end
@@ -52,4 +53,4 @@ legend('show')
 title('ROC')
 
 print(im_roc,[dirName 'ROC'],'-dpng');
-save([dirName 'ROCdata'],'ROCdata');
+save([dirName 'ROCdata'],'ROCdata','Algoritmos','Neuronios');

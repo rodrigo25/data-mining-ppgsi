@@ -13,7 +13,7 @@ for k=1:5
   Yd = [Yd; Ytest];
     
   %TREINA CLASSIFICADOR
-  [ A, B, ERROtr, ERROval, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, neur, maxIt);
+  [ A, B, ERROtr, ERROval, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, neur, maxIt,1);
   redeConfig.Alfa = ['Adaptativo'];
   
   %TESTA CLASSIFICADOR
@@ -27,8 +27,8 @@ for k=1:5
   title(['Erro Quadrático Médio - fold ' num2str(k)])
 end
 
-Y(Ymlp>=.15) = 1;
-Y(Ymlp<.15) = 0;
+Y(Ymlp>=.5) = 1;
+Y(Ymlp<.5) = 0;
 
 [ confMatrix, res, res_struct] = calc_result( Yd, Y );
 
