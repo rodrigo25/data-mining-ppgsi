@@ -1,0 +1,50 @@
+
+			 Log de Teste da MLP
+
+
+
+ ---------------------------------------------------
+                 Configurações da Rede              
+ ---------------------------------------------------
+ Nome: 							MLP_clodoaldo
+ Função de Otimização: 			Gradiente
+ Camadas Escondidas: 			1
+ Neurônios na Camada Escondida: 10
+ Alfa: 							Bisseção
+ Máximo de Iterações: 			1000
+ Limiar de Decisão: 			0.050000
+
+
+ ---------------------------------------------------
+                  Matriz de Confusão                
+ ---------------------------------------------------
+
+	            Predicted         
+	      ----------------------  
+	     |     P    |      N    |     
+	  --------------------------|
+	 | P |	1146	|	  58	|    
+	  -------------------------- 
+	 | N |	 313	|	1518	|    
+	  -------------------------- 
+
+True Positive 		- 1146
+False Negative 		- 58
+False Positive 		- 313
+True Negative 		- 1518
+
+
+ ---------------------------------------------------
+                    Estatísticas                    
+ ---------------------------------------------------
+True Positive Rate (Recall) 			- 0.951827
+True Negative Rate (Specificity) 		- 0.829055
+Positive Predictive Value (Precision) 	- 0.785469
+Negative Predictive Value 				- 0.963198
+False Negative Rate (Miss Rate) 		- 0.048173
+False Discovery Rate 					- 0.214531
+False Omission Rate 					- 0.036802
+Accuracy 								- 0.877759
+F-score 								- 0.860683
+Matthews Correlation Coefficient 		- 0.764605
+ ---------------------------------------------------

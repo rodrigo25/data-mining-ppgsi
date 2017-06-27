@@ -86,8 +86,8 @@ while it<maxIt
     end
     
     if earlyStopping
-      if it > 30
-        if ~any(newEQMval < ERROval(it-30:end))
+      if it > 40
+        if ~any(newEQMval < ERROval(it-40:end))
           fprintf(' %d ',it)
           return
         end

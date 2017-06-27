@@ -9,7 +9,7 @@ Algoritmos = {'MLP_alfaAdaptativo'};
 totalAlgoritmos = length(Algoritmos);
 
 %SELECIONA VARIACAO DE NEURONIOS NA CAMADA OCULTA
-Neuronios = [10 50 100];
+Neuronios = [70 80 90 100];
 %Neuronios = 20:20:200;
 totalNeuronios = length(Neuronios);
 

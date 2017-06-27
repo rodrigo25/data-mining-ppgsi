@@ -33,7 +33,7 @@ while norm(g)>1e-8 & nepocas < nepocasmax
     end
     
     d = -g;
-    alfa = calc_alfa_clodoaldo(X,Yd, A, B,gA, gB, d, N);
+    alfa = calc_alfa(X,Yd, A, B,gA, gB, d, N);
     A = A - alfa*gA;
     B = B - alfa*gB;
     [g,gA, gB] = calc_grad(X, Yd, A, B, N); 
@@ -47,6 +47,50 @@ end
     
 end
 
+
+
+function alfa_m = calc_alfa(X,Yd, A, B,gA, gB, d, N)
+alfa_l= 0;
+alfa_u = rand;
+Aaux = A - alfa_u*gA;
+Baux = B - alfa_u*gB;
+[g,~,~]=calc_grad(X,Yd,Aaux,Baux,N);
+hl = g'*d;
+
+if abs(hl)< 1e-8
+    alfa_m = alfa_u;
+end
+
+while hl<0 
+    alfa_u = alfa_u*2;
+    Aaux = A - alfa_u*gA;
+    Baux = B - alfa_u*gB;
+    [g,~,~]=calc_grad(X,Yd,Aaux,Baux,N);
+    hl = g'*d;
+end
+epsilon = 1e-8;
+alfa_m = alfa_u;
+nitmax = ceil(log(alfa_u/epsilon));
+nit = 0;
+
+while abs(hl)>epsilon & nit < nitmax
+     nit = nit + 1;
+    alfa_m = (alfa_l+alfa_u)/2;
+    Aaux = A - alfa_m*gA;
+    Baux = B - alfa_m*gB;
+    [g,~,~]=calc_grad(X,Yd,Aaux,Baux,N);
+    hl = g'*d;
+    
+    if hl<0
+        alfa_l = alfa_m;
+    else 
+        alfa_u = alfa_m;
+    end
+end
+
+%alfa_m
+
+end
 
 
 

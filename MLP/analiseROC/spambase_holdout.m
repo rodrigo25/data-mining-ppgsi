@@ -1,7 +1,7 @@
-function [TPR, FPR] = spambase_holdout(classificador, neur, testName)
+function [TPR, FPR] = spambase_holdout(classificador, neur, dirPai)
   
   %CRIA O DIRETORIO DE RESULTADOS
-  dirName = ['Resultados/Spambase/Holdout/' testName '/' classificador num2str(neur) 'h/'];
+  dirName = [dirPai classificador num2str(neur) 'h/'];
   if ~exist(dirName, 'dir') % se o dir nao existe, ele eh criado
     mkdir(dirName);
   end
@@ -9,7 +9,7 @@ function [TPR, FPR] = spambase_holdout(classificador, neur, testName)
   %CARREGA DATASET
   load('../data/data_spambase_holdout.mat');
 
-  maxIt = 5000;
+  maxIt = 100;
  
   redeConfig = struct('Nome',classificador,'Otimizacao','Gradiente','Alfa',[],'MaxIt',maxIt,'Neuronios',neur,'Camadas',1,'Limiar',[]);
   
@@ -33,7 +33,7 @@ function [TPR, FPR] = spambase_holdout(classificador, neur, testName)
   Ymlp = MLPsaida( Xtest, A, B );
 
   %SALVA DADOS
-  save([dirName 'Rede_' testName '_' classificador num2str(neur) 'h'],'A','B','neur','Ymlp');
+  save([dirName 'Rede_' classificador num2str(neur) 'h'],'A','B','neur','Ymlp');
   
   TPR = [];
   FPR = [];

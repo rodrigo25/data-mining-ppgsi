@@ -1,0 +1,50 @@
+
+			 Log de Teste da MLP
+
+
+
+ ---------------------------------------------------
+                 Configurações da Rede              
+ ---------------------------------------------------
+ Nome: 							MLP_alfaAdaptativo
+ Função de Otimização: 			Gradiente
+ Camadas Escondidas: 			1
+ Neurônios na Camada Escondida: 80
+ Alfa: 							Adaptativo
+ Máximo de Iterações: 			1000
+ Limiar de Decisão: 			0.145000
+
+
+ ---------------------------------------------------
+                  Matriz de Confusão                
+ ---------------------------------------------------
+
+	            Predicted         
+	      ----------------------  
+	     |     P    |      N    |     
+	  --------------------------|
+	 | P |	1146	|	  58	|    
+	  -------------------------- 
+	 | N |	 240	|	1591	|    
+	  -------------------------- 
+
+True Positive 		- 1146
+False Negative 		- 58
+False Positive 		- 240
+True Negative 		- 1591
+
+
+ ---------------------------------------------------
+                    Estatísticas                    
+ ---------------------------------------------------
+True Positive Rate (Recall) 			- 0.951827
+True Negative Rate (Specificity) 		- 0.868924
+Positive Predictive Value (Precision) 	- 0.826840
+Negative Predictive Value 				- 0.964827
+False Negative Rate (Miss Rate) 		- 0.048173
+False Discovery Rate 					- 0.173160
+False Omission Rate 					- 0.035173
+Accuracy 								- 0.901812
+F-score 								- 0.884942
+Matthews Correlation Coefficient 		- 0.806078
+ ---------------------------------------------------
