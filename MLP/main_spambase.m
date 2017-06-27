@@ -143,7 +143,7 @@ function [accuracies, epochsExecuted] = main_spambase()
     %aprendizado
     maxAccNeurons = 10;
     maxEpochs = 500;
-    alfaApproaches = [0 1 2];
+    alfaApproaches = [0 1 2 3];
     
     resultFileDir = ['grid' '\' 'spambase' '\' 'kfold' '\' 'alfas' '\'];
     if ~exist(resultFileDir, 'dir')
@@ -159,7 +159,13 @@ function [accuracies, epochsExecuted] = main_spambase()
                 if exist([resultFileName '.mat'],'file') == 2
                     continue;
                 end
-                [ A, B, ~, ~, ep ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .01, alfaApproach, 1 ); 
+                
+                if alfaApproach==3
+                    [ A, B ] = treina_rede( Xtr, Ytr, h, maxEpochs );
+                else
+                    [ A, B, ~, ~, ~ ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, maxEpochs, .01, alfaApproach, 1 ); 
+                end
+
                 Y = MLPsaida( Xtest, A, B );
                 Y(Y>=.5) = 1;
                 Y(Y<.5) = 0;
@@ -171,16 +177,16 @@ function [accuracies, epochsExecuted] = main_spambase()
         end
     end
         
-    accuracies = zeros(length(epochs),1);
-    epochsExecuted = zeros(length(epochs),1);
-    for i=1:length(epochs)
-        h = maxAccNeurons;
-        maxEpochs = epochs(i);
+    accuracies = zeros(length(alfaApproaches),1);
+    epochsExecuted = zeros(length(alfaApproaches),1);
+    maxEpochs = 500;
+    for i=1:length(alfaApproaches)
+        alfaApproach = alfaApproaches(i);
         totalAcc = 0;
         totalEp = 0;
         for k=1:K
             for t=1:30
-                load([resultFileDir sprintf('maxEpochs%d_k%d_t%d', maxEpochs, k, t)]);
+                load([resultFileDir sprintf('maxEpochs%d_k%d_t%d_alfa%d', maxEpochs, k, t, alfaApproach)]);
                 totalAcc = totalAcc + acc;
                 totalEp = totalEp + ep;
             end 
