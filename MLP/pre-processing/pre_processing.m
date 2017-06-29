@@ -1,21 +1,25 @@
-function [fileOut] = pre_processing(dataset,overwrite)
-    if nargin < 2
-        overwrite = -1;
-    end
-    if nargin < 1
-        %SELECIONA DATASET
-        datasetOpt = input('Selecione o dataset [1]data_spambase [2]data_winequality-red [3]data_winequality-white: ');
+function [fileOut] = pre_processing(dataset,overwrite,typeCrossValidation)
+    if nargin < 3
+        %typeCrossValidation = 'holdout';
+        typeCrossValidation = 'kfold';        
+        if nargin < 2
+            overwrite = -1;
+            if nargin < 1
+                %SELECIONA DATASET
+                datasetOpt = input('Selecione o dataset [1]data_spambase [2]data_winequality-red [3]data_winequality-white: ');
 
-        switch datasetOpt
-            case 1
-                dataset = 'data_spambase';
-            case 2
-                dataset = 'data_winequality-red';
-            case 3
-                dataset = 'data_winequality-white';
-            otherwise
-                error('Unknown dataset option');
-        end
+                switch datasetOpt
+                    case 1
+                        dataset = 'data_spambase';
+                    case 2
+                        dataset = 'data_winequality-red';
+                    case 3
+                        dataset = 'data_winequality-white';
+                    otherwise
+                        error('Unknown dataset option');
+                end
+            end
+        end 
     end
 
     %CARREGA DATASET
@@ -35,7 +39,7 @@ function [fileOut] = pre_processing(dataset,overwrite)
 
     %CROSS-VALIDATION
     %typeCrossValidation = 'holdout';
-    typeCrossValidation = 'kfold';
+    %typeCrossValidation = 'kfold';
 
     %informacoes sobre o pre-processamento
     preProcInfo = struct('dataset',dataset, ...
@@ -55,7 +59,7 @@ function [fileOut] = pre_processing(dataset,overwrite)
 
       preProcInfo.k = k;
 
-      fileOut = ['../data/' dataset '_holdout']; %define o nome do arq de saida
+      fileOut = ['data/' dataset '_holdout']; %define o nome do arq de saida
         
       if exist(fileOut, 'file') %verifica se o arquivo ja existe
         if overwrite == -1
