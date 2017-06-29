@@ -1,6 +1,6 @@
 function [] = main_winequality_holdout_adaboost()
 
-    T = 1000; % adaboost rounds
+    T = 100; % adaboost rounds
     h = 10; % adaboost MLP components hidden layer neuron count
     nepocas = 1000; % adaboost MLP components max epoch count
     
