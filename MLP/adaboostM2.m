@@ -1,4 +1,4 @@
-function Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest,classes, T, h, nepocasMax, discardMode, resampleMode, nnArchMode)
+function [Yh, XYtrained] = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest,classes, T, h, nepocasMax, nnArchMode)
 % adaboostM2 pseudo-loss adaboost m2 (multi-class)
 % Xtr           - training set (N,ne)
 % Ytr           - training set labels, binary matrix (N,nc) nc = num classes
@@ -7,48 +7,32 @@ function Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest,classes, T, h, nepoc
 % T             - Num of adaboost rounds
 % h             - hidden layer neurons count
 % nepocasMax    - max num of epochs
-% discardMode  - 
-%                   0: discards the t-th classifier if pseudo-loss >= .5
-%                   1: discards the t-th classifier if guessing by major
-%                   class is better
-% resampleMode - 
-%                   0: no resample
-%                   1: resample before training t-th classifier
 % nnArchMode    - 
 %                   0: constant MLP architecture
-%                   1: h increased by 10 at each round t
-% 
-
-    
+%                   1: MLP hidden layer count increased by 1 at each round t
+     
     % Validate input 
+    if T < 2
+       error('Adaboost rounds must be >= 2'); 
+    end
     if size(Ytr,2) ~= length(classes) || size(Ytest,2) ~= length(classes)
        error('Training or test labels dimensions dont correspond to num of classe'); 
-    end
-    
-    if resampleMode~=0 && resampleMode~=1
-       error('Resample mode should be 0 or 1'); 
-    end
-    
-    if discardMode~=0 && discardMode~=1
-       error('Discard mode should be 0 or 1'); 
     end
     
     if nnArchMode~=0 && nnArchMode~=1
        error('NN arch mode should be 0 or 1'); 
     end
-    % end validating input
+    % end validate input
 
-    [A, B, beta, P] = train(T, Xtr, Ytr, Xval, Yval, classes, h, nepocasMax, discardMode, resampleMode, nnArchMode);
+    [A, B, beta, L, XYtrained] = train(T, Xtr, Ytr, Xval, Yval, classes, h, nepocasMax, nnArchMode);
     
     Yh = 0;
     for t=1:T
-       %Yh = Yh + log(1/beta(t))*MLPsaida([Xtest repmat(1/size(Xtest,1),size(Xtest,1),1)], A{t}, B{t});
-       Yh = Yh + log(1/beta(t))*MLPsaida(Xtest, A{t}, B{t});
+       Yh = Yh + log(1/beta(t))*MLPsaida(Xtest, L(t), A{t}, B{t});
     end
-    sum(Ytr)
 end
 
-function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, discardMode, resampleMode, nnArchMode)
+function [A, B, beta, L, XYtrained ] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, nnArchMode)
     
     % Notacao
     % N - num de instancias
@@ -69,10 +53,12 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, 
     % Output MLP components weigths
     % A - input layer to hidden layer
     % B - hidden layer to output layer
-    A = cell(T);
-    B = cell(T);
+    A = cell(T,1);
+    B = cell(T,1);
     
-    P = cell(T);
+    P = cell(T,1);
+    
+    XYtrained = cell(T,2);
     
     % D - Distribution over miss-labels 
     % miss-labels = {(i,y)| i in {1;...;N} & y ~= yi }
@@ -82,11 +68,12 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, 
     lastResampledRound = 1; % resample only after t > 1
     lastNNArchChangedRound = 1; % change arch only after t > 1
     
+    L = ones(T,1); %MLP hidden layers, inicializadas com 1
     t = 0; %indicates current Adaboost round
     while t<T
         t = t+1;       
         fprintf('Adaboost round %d\n', t);
-        if resampleMode == 1 && lastResampledRound ~= t
+        if lastResampledRound ~= t
             [Xtr, Ytr, D] = resample(Xtr0, Ytr0, D);
             lastResampledRound = t;
         end
@@ -94,40 +81,33 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, 
         P_t = P_t ./ sum(P_t);
         P{t} = P_t;
         
+        XYtrained{t,1} = Xtr;
+        XYtrained{t,2} = Ytr;
+        
         nPerClass = sum(Ytr)
         
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
-           h = h + 10;
-           %epochs = epochs + 250;
+           %L(t) = L(t) + mod(t-1,2);
+           %epochs = epochs - 100;
            lastNNArchChangedRound=t;
         end
         
         V = ones(N,nc);
-        V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
+        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
         
         % Trains the MLP 
-        %[A_t,B_t] = MLPtreina([Xtr P_t],Ytr,[Xval repmat(1/size(Xval,1), size(Xval,1),1)],Yval,h,epochs,.01,0,0,V);
-        [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,.01,0,1,V);
+        [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,L(t),h,epochs,.01,0,1,V);
+        %[A_t,B_t] = treina_rede(Xtr,Ytr,h,epochs);
+        %[A_t,B_t,~] = treinamento(Xtr,Ytr,h,epochs);
         
         %Yh - MLPs hypothesis
-        %Yh = MLPsaida([Xtr P_t], A_t, B_t);
-        Yh = MLPsaida(Xtr, A_t, B_t);
+        Yh = MLPsaida(Xtr, L(t), A_t, B_t);
         
-        % Discard classifier if accuracy is too low
-        if discardMode == 1
-            [~,Yh_] = max(Yh,[],2);
-            [~,Ytr_] = max(Ytr,[],2);
-            acc = multiclassConfusionMatrix( Ytr_, Yh_, classes, 1, sprintf('T=%d (training set)', t) );
-            [~,majorClass] = max(nPerClass);
-            nMajorClass = nPerClass(majorClass);
-            majorClassAcc = (nMajorClass / sum(nPerClass));
-            if acc <= majorClassAcc
-               t = t - 1;
-               fprintf('Low accuracy, discarding classifier. Random guessing would have acc=%f\n', majorClassAcc);
-               continue;
-            end 
-        end
+        % shows accuracy
+        [~,Yhc]= max(Yh,[],2);
+        [~,Ytrc] = max(Ytr,[],2);
+        multiclassConfusionMatrix( Ytrc, Yhc, classes );
         
         % Calculates pseudo-loss
         
@@ -146,7 +126,7 @@ function [A, B, beta, P] = train(T, Xtr0, Ytr0, Xval, Yval, classes, h, epochs, 
         beta_t = epsilon_t / (1 - epsilon_t);
         
         % Discards if pseudo-loss is too high
-        if discardMode==0 && epsilon_t >= .5
+        if epsilon_t >= .5
             fprintf('Pseudo-loss too high %f discarding classifier %d\n', epsilon_t, t);
             t = t - 1;
             continue;
