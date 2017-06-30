@@ -1,16 +1,28 @@
 function [] = main_winequality_holdout_adaboost()
 
-    T = 100; % adaboost rounds
-    h = 10; % adaboost MLP components hidden layer neuron count
-    nepocas = 1000; % adaboost MLP components max epoch count
-    
     % preprocessa data_winequality-red
     % 0 = nao sobrescreve se existir
     fileName = pre_processing('data_winequality-red',0,'holdout');
     load(fileName);
-   
-    %K = preProcInfo.k;
+
+    h = 10; % MLP components hidden layer neuron count
+    nepocas = 1000; % adaboost MLP components max epoch count
     classes = preProcInfo.classes;
+    
+    % MLP normal para comparar
+    [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, 1, h, nepocas, .01, 0, 0);
+    %[A,B] = treina_rede(Xtr,Ytr,h,nepocas);
+    %[ A, B, ~] = treinamento(Xtr,Ytr,h,nepocas);
+    
+    Yh = MLPsaida( Xtest, 1, A, B );
+    [~,Yh] = max(Yh,[],2);
+    fprintf('MLP answer (%d hidden layer neurons, %d epochs)\n', h, nepocas);
+    [~,YtestClasses] = max(Ytest,[],2);
+    mlpAcc = multiclassConfusionMatrix( YtestClasses, Yh, classes, 3, 'MLP' );
+    %pause;
+    T = 100; % adaboost rounds
+     
+    %K = preProcInfo.k;
 
     [Yh, ~] = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest, classes, T, h, nepocas, 1);
 
@@ -18,19 +30,9 @@ function [] = main_winequality_holdout_adaboost()
     [~,Yh]= max(Yh,[],2);
     [~,Ytest] = max(Ytest,[],2);
 
-    multiclassConfusionMatrix( Ytest, Yh, classes, 2, 'Adaboost' );
-    
-    % MLP normal para comparar
-    [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, 1, h, nepocas, .01, 0, 1);
-    %[A,B] = treina_rede(Xtr,Ytr,h,nepocas);
-    %[ A, B, ~] = treinamento(Xtr,Ytr,h,nepocas);
-    
-    Y = MLPsaida( Xtest, 1, A, B );
-    [~,Y] = max(Y,[],2);
-    fprintf('MLP answer (%d hidden layer neurons, %d epochs)\n', h, nepocas);
-    
-    multiclassConfusionMatrix( Ytest, Y, classes, 3, 'MLP' );
-    
+    ensembleAcc = multiclassConfusionMatrix( Ytest, Yh, classes, 3, 'Adaboost' );
+    fprintf('MLP accuracy %f\n', mlpAcc);
+    fprintf('Ensemble accuracy %f\n', ensembleAcc);
     %{
     for t=1:T
        Xtrained = XYtrained{t,1}; 
