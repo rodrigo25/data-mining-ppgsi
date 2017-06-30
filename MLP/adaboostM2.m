@@ -98,7 +98,7 @@ function [A, B, beta, L, XYtrained ] = train(T, Xtr0, Ytr0, Xval, Yval, classes,
         
         % Trains the MLP 
         [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,L(t),h,epochs,.01,0,0,V);
-        %[A_t,B_t] = treina_rede(Xtr,Ytr,h,epochs);
+        %[A_t,B_t] = MLP_clodoaldo(Xtr,Ytr,h,epochs);
         %[A_t,B_t,~] = treinamento(Xtr,Ytr,h,epochs);
         
         %Yh - MLPs hypothesis
@@ -157,18 +157,8 @@ function [Xtr, Ytr, D] = resample(Xtr, Ytr, D)
     [N,~] = size(Xtr);
     P = sum(D,2);
     P = P ./ sum(P);
-    resample = 0;
-    while resample < N
-        for i=1:N
-           if rand < P(i)
-               resample = resample + 1;
-               Xtr(resample,:) = Xtr(i,:);
-               Ytr(resample,:) = Ytr(i,:);
-               D(resample,:) = D(i,:);
-               if resample == N
-                  break; 
-               end
-           end
-        end
-    end
+    resample = randsample(N,N,true,P);
+    Xtr(:,:) = Xtr(resample,:);
+    Ytr(:,:) = Ytr(resample,:);
+    D(:,:) = D(resample,:);
 end

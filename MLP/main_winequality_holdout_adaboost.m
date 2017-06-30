@@ -11,7 +11,7 @@ function [] = main_winequality_holdout_adaboost()
     
     % MLP normal para comparar
     [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, 1, h, nepocas, .01, 0, 0);
-    %[A,B] = treina_rede(Xtr,Ytr,h,nepocas);
+    %[A,B] = MLP_clodoaldo(Xtr,Ytr,h,nepocas);
     %[ A, B, ~] = treinamento(Xtr,Ytr,h,nepocas);
     
     Yh = MLPsaida( Xtest, 1, A, B );
