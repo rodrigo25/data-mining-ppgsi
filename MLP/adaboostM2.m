@@ -97,7 +97,7 @@ function [A, B, beta, L, XYtrained ] = train(T, Xtr0, Ytr0, Xval, Yval, classes,
         %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
         
         % Trains the MLP 
-        [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,L(t),h,epochs,.01,0,1,V);
+        [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,L(t),h,epochs,.01,0,0,V);
         %[A_t,B_t] = treina_rede(Xtr,Ytr,h,epochs);
         %[A_t,B_t,~] = treinamento(Xtr,Ytr,h,epochs);
         
