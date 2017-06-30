@@ -99,7 +99,7 @@ function [A, B, beta, L, XYtrained ] = train(T, Xtr0, Ytr0, Xval, Yval, classes,
         % Trains the MLP 
         [A_t,B_t] = MLPtreina(Xtr,Ytr,Xval,Yval,L(t),h,epochs,.01,0,0,V);
         %[A_t,B_t] = MLP_clodoaldo(Xtr,Ytr,h,epochs);
-        %[A_t,B_t,~] = treinamento(Xtr,Ytr,h,epochs);
+        %[A_t,B_t] = MLP_alfaAdaptativo(Xtr,Ytr,Xval,Yval,h,epochs,0);
         
         %Yh - MLPs hypothesis
         Yh = MLPsaida(Xtr, L(t), A_t, B_t);
