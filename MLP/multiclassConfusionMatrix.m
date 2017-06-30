@@ -18,7 +18,7 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
    
    %classesMetrics = getConfusionMetrics( matrix, classes );
    accuracy = sum(diag(matrix)) / sum(sum(matrix));
-   fprintf('Accuracy is %.6f\n', accuracy);
+   %fprintf('Accuracy is %.6f\n', accuracy);
 end
 
 function [] = plotConfusionMatrix( classes, matrix, figureHandle, matrixTitle, resultPath )
