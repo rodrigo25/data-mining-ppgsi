@@ -177,7 +177,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       MSEtrain = [MSEtrain;mse];
       MSEval = [MSEval;mseVal];
       
-      
+      %{
       fig=figure(1);
       clf(fig);
       plot(MSEtrain, 'b');
@@ -187,7 +187,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       xlabel('Epocas');
       ylabel('Erro Quadratico Medio');            
       legend('train', 'validation');
-      
+      %}
       %{
       alfas = [alfas;alfa];
       fig = figure(2);
@@ -198,6 +198,6 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       %fprintf('%.8f\n',alfa);
     end
 
-    close(figure(1));
+    %close(figure(1));
     %close(figure(2));
 end
