@@ -61,7 +61,7 @@ function [fileOut] = pre_processing(dataset,overwrite,typeCrossValidation)
 
       fileOut = ['data/' dataset '_holdout']; %define o nome do arq de saida
         
-      if exist(fileOut, 'file') %verifica se o arquivo ja existe
+      if exist([fileOut '.mat'], 'file') %verifica se o arquivo ja existe
         if overwrite == -1
             choice = questdlg('The file allready exist, do you want to overwrite it?', 'Warning', 'Yes','No','No');
             if strcmp(choice,'No')
