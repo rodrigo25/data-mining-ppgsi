@@ -67,8 +67,8 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       end
 
       % if early stopping is enabled
-      % and if the last 20 epochs show no improvement
-      if earlyStopping && it > 4 && mod(it-1,earlyStoppingEpochsNum) == 0 && mseVal >= MSEval(it-5)
+      % and if the last epochs show no improvement
+      if earlyStopping && it > (earlyStoppingEpochsNum+5) && mseVal >= MSEval(it-5)
           % check last epochs improvements
           % assume no improvement
           lastEpochsNoImprovement = 1;
