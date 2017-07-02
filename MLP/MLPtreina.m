@@ -41,6 +41,8 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
     alfas = [];
     minAlfa = .001;
     
+    earlyStoppingEpochsNum = 40;
+    
     epochsExecuted = 0;
     it = 0;
     while it < mE && mse > 1e-5
@@ -59,22 +61,21 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       mseVal = sum(sum( errVal.^2 ))/size(Xval,1);
      
       %Saves A, B to restore (early stopping case)
-      if mod(it,20) == 0
+      if mod(it,earlyStoppingEpochsNum) == 0
          savedA = A;
          savedB = B;
       end
-      
+
       % if early stopping is enabled
       % and if the last 20 epochs show no improvement
-      if earlyStopping && it > 1 && mod(it-1,20) == 0 && mseVal > MSEval(it-1)
+      if earlyStopping && it > 4 && mod(it-1,earlyStoppingEpochsNum) == 0 && mseVal >= MSEval(it-5)
           % check last epochs improvements
           % assume no improvement
           lastEpochsNoImprovement = 1;
-          for i=19:-1:1
-              if MSEval(it-20+i) < MSEval(it-20+i-1) 
-                  % some improvement found
+          for i=5:5:earlyStoppingEpochsNum
+              if MSEval(it-i) < MSEval(it-(i+5))
+                  % found some improvement
                   lastEpochsNoImprovement = 0;
-                  break;
               end
           end
           if lastEpochsNoImprovement == 1
@@ -176,6 +177,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       
       epochsExecuted = it;
       
+      %{
       fig=figure(1);
       clf(fig);
       plot(MSEtrain, 'b');
@@ -185,7 +187,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       xlabel('Epocas');
       ylabel('Erro Quadratico Medio');            
       legend('train', 'validation');
-      
+      %}
       %{
       alfas = [alfas;alfa];
       fig = figure(2);
