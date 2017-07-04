@@ -1,85 +1,61 @@
 function [] = main_winequality_holdout_adaboost()
 
-    % preprocessa data_winequality-red
-    % 0 = nao sobrescreve se existir
-    fileName = pre_processing('data_winequality-red',0,'holdout');
-    load(fileName);
+    neurons = [20 40 60];
+    epochs = [200 500 1000 5000];
+    T = 100;
+    numExecutions = 10;
+    holdoutCount = 5;
+    
+    fileNames = pre_processing('data_winequality-red',0, 'holdout', holdoutCount);
+    baseResultFileDir = 'ensemble-T100-arch0\winequality\red\holdout\';
+    for fileIndex=1:numel(fileNames)
+        load(fileNames{1}); 
+        % assigns variables to themselves, so threads in the pool can see
+        % them (matlab very cool and nice details)
+        Xtest = Xtest;
+        Xtr = Xtr;
+        Xval = Xval;
+        Ytest = Ytest;
+        Ytr = Ytr;
+        Yval = Yval;
+        classes = preProcInfo.classes;
+        [~,YtestClasses] = max(Ytest,[],2);
 
-    h = 10; % MLP components hidden layer neuron count
-    
-    classes = preProcInfo.classes;
-    
-    [~,YtestClasses] = max(Ytest,[],2);
-    
-    
-    %Xtr = [Xtr;Xval];
-    %Ytr = [Ytr;Yval];
-    
-    %PCA
-    %{
-    [ coefs, ~, pcvar ] = pca(Xtr);           
-    relVar = pcvar / sum(pcvar);
-               
-    for dim=1:length(relVar)
-        if sum(relVar(1:dim)) >= 0.95
-            break;
+        resultFileDir = [baseResultFileDir num2str(fileIndex) '\'];
+        if ~exist(resultFileDir, 'dir')
+            mkdir(resultFileDir);
+        end
+       
+        for i=1:length(neurons)
+            h = neurons(i);
+            for j=1:length(epochs)
+                maxEpochs = epochs(j);
+                YhEnsembles = cell(numExecutions,1);
+                parfor (t=1:numExecutions,4)
+                    resultFileName = [resultFileDir sprintf('maxEpochs%d_h%d_t%d', maxEpochs, h, t)];
+                    if exist([resultFileName '.mat'], 'file') == 2
+                       continue; 
+                    end
+                    Yh = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest, classes, T, h, maxEpochs, 0);
+                    [~,Yh] = max(Yh,[],2);
+                    YhEnsembles{t} = Yh;
+                    acc = multiclassConfusionMatrix( YtestClasses, Yh, classes );
+                    fprintf('h = %d\tfile = %d\tt = %d\tacc = %f\tmaxEpochs = %d\n', h, fileIndex, t, acc, maxEpochs);
+                end
+                for t=1:numExecutions
+                    resultFileName = [resultFileDir sprintf('maxEpochs%d_h%d_t%d', maxEpochs, h, t)];
+                    if exist([resultFileName '.mat'], 'file') == 2
+                       continue; 
+                    end
+                    Yh = YhEnsembles{t};
+                    acc = multiclassConfusionMatrix( YtestClasses, Yh, classes, 1, 'Adaboost', [resultFileName '_confusion_matrix'] );
+                    save(resultFileName, 'acc', 'Yh');
+                end
+            end
         end
     end
-    Xtr = Xtr * coefs(:,1:dim);
-    Xtest = Xtest * coefs(:,1:dim);
-    Xval = Xval * coefs(:,1:dim);
-    %}
-    
+
     %{
-    valError = zeros(size(Xtr,2),1);
-    for i=1:size(Xtr,2)
-        [ ~, ~, ~, MSEval, epochsExecuted ] = MLPtreina( Xtr(:,i), Ytr, Xval(:,i), Yval, 1, h, nepocas, .01, 0, 0);    
-        valError(i) = MSEval(epochsExecuted);
-    end
-    [~,valErrorIndex] = sort(valError);
-    
-    features = valErrorIndex(1);
-    featuresError = valError(valErrorIndex(1));
-    for i=2:length(valErrorIndex)
-        newFeatures = [features valErrorIndex(i)];
-        [ ~, ~, ~, MSEval, epochsExecuted ] = MLPtreina( Xtr(:,newFeatures), Ytr, Xval(:,newFeatures), Yval, 1, h, nepocas, .01, 0, 0);
-        newValError = MSEval(epochsExecuted);
-        if newValError < featuresError
-           features = newFeatures; 
-           featuresError = newValError;
-        end
-    end       
-    
-    Xtr = Xtr(:,features);
-    Xval = Xval(:,features);
-    Xtest = Xtest(:,features);
-    %}
-    %Xtr = [Xtr;Xval];
-    %Ytr = [Ytr;Yval];
-    
-    % MLP normal para comparar
-    [ A, B ] = MLPtreina( Xtr, Ytr, Xval, Yval, h, 1000, 2, 1, 1 );
-    % [A,B] = MLP_clodoaldo(Xtr,Ytr,h,nepocas);
-    %[ A, B] = MLP_alfaAdaptativo(Xtr,Ytr,Xval,Yval,h,1000,0);
-    
-    Yh = MLPsaida( Xtest, A, B );
-    [~,Yh] = max(Yh,[],2);
-    fprintf('MLP answer (%d hidden layer neurons, %d epochs)\n', h, 1000);
-    
-    mlpAcc = multiclassConfusionMatrix( YtestClasses, Yh, classes, 2, 'MLP' );
-    fprintf('MLP accuracy %f\n', mlpAcc);
-    %return;
-    T = 100; % adaboost rounds
-     
-    %K = preProcInfo.k;
-
-    [Yh, Aen, Ben, beta, MSEtrain, MSEval] = adaboostM2(Xtr, Ytr, Xval, Yval, Xtest, Ytest, classes, T, h, 2000, 1);
-
-    fprintf('Adaboost global answer (%d components, %d hidden layer neurons, %d epochs)\n', T, h, 2000);
-    [~,Yh]= max(Yh,[],2);
-
-    ensembleAcc = multiclassConfusionMatrix( YtestClasses, Yh, classes, 3, 'Adaboost' );
-
     [~, sortedComponents] = sort(MSEval);
     
     bestComponents = sortedComponents(1);
@@ -135,5 +111,6 @@ function [] = main_winequality_holdout_adaboost()
        fprintf('Comparacao MLP t=%d\n', t);
        multiclassConfusionMatrix( Ytrained, Y, classes );
     end
+    %}
     %}
 end
