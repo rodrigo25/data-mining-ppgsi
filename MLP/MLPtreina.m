@@ -5,7 +5,6 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
 % Yd        - Training labels (N,nc)
 % Xval      - Validation dataset
 % Ydval     - Validation labels
-% L         - Nº de camadas ocultas
 % h         - Nº neuronios em cada camada oculta
 % mE        - max iterations
 % alfa0     - Taxa de aprendizado inicial
@@ -92,15 +91,18 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       end
       
       %Backpropagation
-      gradB = 1/N * err.*((1-Y).*Y);
-      gradA = 1/N * (gradB*B(:,2:end)).*(Z.*(1-Z));
-     
+      gradB = err.*((1-Y).*Y);
+      gradA = (gradB*B(:,2:end)).*(Z.*(1-Z));
+
+      %The 2 scenarios where it's nice to reduce the size of gradients
+      if alfaType == 2 || gradientType == 1
+          gradB = gradB * 1/N;
+          gradA = gradA * 1/N;          
+      end
+      
       if gradientType == 1
           % gradiente conjugado polak-ribiere
           if it == 1
-              dB = gradB;
-              dA = gradA;
-
               gradB_old = gradB;
               gradA_old = gradA;
 
@@ -115,9 +117,9 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
               
               gB = sqrt(normB');
               gA = sqrt(normA');
-              gradB = dB ./ repmat(gB,N,1);
-              gradA = dA ./ repmat(gA,N,1);
-          else              
+              gradB = gradB ./ repmat(gB+0.000001,N,1);
+              gradA = gradA ./ repmat(gA+0.000001,N,1);
+          else
               newNormA = zeros(h,1);
               for i=1:h
                  newNormA(i) = gradA(:,i)' * gradA(:,i);
@@ -128,17 +130,13 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
               end
               
               if mod(it,ns) ~= 0
-                  beta = ((gradB - gradB_old)'*gradB)./repmat(gB,ns,1);
-                  dB = gradB + dB * beta;
-              else
-                  dB = gradB;
+                  beta = ((gradB - gradB_old)'*gradB)./repmat(gB+0.000001,ns,1);
+                  gradB = gradB + gradB * beta;
               end
                             
               if mod(it,h) ~= 0
-                  beta = ((gradA - gradA_old)'*gradA)./repmat(gA,h,1);
-                  dA = gradA + dA * beta;
-              else
-                  dA = gradA;
+                  beta = ((gradA - gradA_old)'*gradA)./repmat(gA+0.000001,h,1);
+                  gradA = gradA + gradA * beta;
               end
 
               normB = newNormB;
@@ -149,8 +147,8 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
               
               gB = sqrt(normB');
               gA = sqrt(normA');
-              gradB = dB ./ repmat(gB,N,1);
-              gradA = dA ./ repmat(gA,N,1);
+              gradB = gradB ./ repmat(gB+0.000001,N,1);
+              gradA = gradA ./ repmat(gA+0.000001,N,1);
           end 
       end
       
@@ -181,7 +179,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
       
       epochsExecuted = it;
       
-      %{
+      %{  
       fig=figure(1);
       clf(fig);
       plot(MSEtrain, 'b');
