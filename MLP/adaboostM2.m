@@ -67,16 +67,22 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
     lastNNArchChangedRound = 1; % change arch only after t > 1
     
     t = 0; %indicates current Adaboost round
+    fprintf('Adaboost rounds:\n')
     while t<T
-        t = t+1;       
-        fprintf('Adaboost round %d\n', t);
+        t = t+1;
+        
+        fprintf('%d ', t);
+        if mod(t,20) == 0
+            fprintf('\n');
+        end
+        %fprintf('Adaboost M2 round %d\n', t);
         if lastResampledRound ~= t
             [Xtr, Ytr] = resample(Xtr0, Ytr0, D);
             lastResampledRound = t;
         end
         
-        disp('# per class');
-        disp(sum(Ytr));
+        %disp('# per class');
+        %disp(sum(Ytr));
         
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
@@ -99,8 +105,9 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
         % shows accuracy
         [~,Yhc]= max(Yh,[],2);
         [~,Ytrc] = max(Ytr0,[],2);
-        acc = multiclassConfusionMatrix( Ytrc, Yhc, classes );
-        fprintf('Adaboost M2 component %d executed %d epochs with validation error %f and training acc %f\n', t, epochsExecuted, netMSEval(epochsExecuted), acc);
+        
+        %acc = multiclassConfusionMatrix( Ytrc, Yhc, classes );
+        %fprintf('Adaboost M2 component %d executed %d epochs with validation error %f and training acc %f\n', t, epochsExecuted, netMSEval(epochsExecuted), acc);
         
         % Calculates pseudo-loss
         
@@ -125,7 +132,7 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
             continue;
         end
         
-        fprintf('Adaboost round %d epsilon=%f\n', t, epsilon_t);
+        %fprintf('Adaboost M2 round %d epsilon=%f\n', t, epsilon_t);
         
         D = D .* (beta_t .^ ( 1/2 *(1 + Yh_term - Yh_term_miss)));
         
