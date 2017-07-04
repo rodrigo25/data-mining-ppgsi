@@ -16,8 +16,8 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
         plotConfusionMatrix( classes, matrix, figureHandle, title, resultPath );
    end
    
-   %classesMetrics = getConfusionMetrics( matrix, classes );
    accuracy = sum(diag(matrix)) / sum(sum(matrix));
+   close all;
    %fprintf('Accuracy is %.6f\n', accuracy);
 end
 
@@ -56,8 +56,8 @@ function [] = plotConfusionMatrix( classes, matrix, figureHandle, matrixTitle, r
     if nargin > 3
         title(sprintf('Matriz de confusão - %s',matrixTitle));
         if nargin > 4
-            confusionMatrixFileName = strcat( resultPath, '\confusionMatrix');
-            pause
+            confusionMatrixFileName = resultPath;
+            %pause
             if ~exist(strcat(confusionMatrixFileName,'.png'), 'file')
                 set(gcf, 'PaperPositionMode', 'auto');
                 print(confusionMatrixFileName, '-dpng'); 
