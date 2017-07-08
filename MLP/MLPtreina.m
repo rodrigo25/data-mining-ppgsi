@@ -7,7 +7,6 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
 % Ydval     - Validation labels
 % h         - Nº neuronios em cada camada oculta
 % mE        - max iterations
-% alfa0     - Taxa de aprendizado inicial
 % alfaType     -
 %                   0: constante, sem decaimento
 %                   1: decaimento pela metade step (a cada 5 epocas)
@@ -18,6 +17,7 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
 % earlyStopping -
 %                   0: nao para o treino se o MSE de validacao subir
 %                   1: para o treino se o MSE de validacao subir
+% alfa0     - Taxa de aprendizado inicial (opcional dependendo de alfaType)
     if nargin < 9
         if alfaType ~= 2
             error('Alfa must be defined if when bisection method is not used');
@@ -46,7 +46,12 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
     it = 0;
     while it < mE && mse > 1e-5
       it = it + 1;
-      
+      if mod(it,5) == 0
+        fprintf('%d ',it);
+        if mod(it,100) == 0
+         fprintf('\n'); 
+        end
+      end
       %Feedfoward
       [Y, Z] = MLPsaida( X, A, B );
 
@@ -105,50 +110,21 @@ function [A, B, MSEtrain, MSEval, epochsExecuted] = MLPtreina(X, Yd, Xval, Ydval
           if it == 1
               gradB_old = gradB;
               gradA_old = gradA;
-
-              normA = zeros(h,1);
-              for i=1:h
-                 normA(i) = gradA(:,i)' * gradA(:,i);
-              end
-              normB = zeros(ns,1);
-              for i=1:ns
-                 normB(i) = gradB(:,i)' * gradB(:,i);
-              end
-              
-              gB = sqrt(normB');
-              gA = sqrt(normA');
-              gradB = gradB ./ repmat(gB+0.000001,N,1);
-              gradA = gradA ./ repmat(gA+0.000001,N,1);
+              dB = gradB;
+              dA = gradA;
           else
-              newNormA = zeros(h,1);
-              for i=1:h
-                 newNormA(i) = gradA(:,i)' * gradA(:,i);
-              end
-              newNormB = zeros(ns,1);
-              for i=1:ns
-                 newNormB(i) = gradB(:,i)' * gradB(:,i);
-              end
-              
               if mod(it,ns) ~= 0
-                  beta = ((gradB - gradB_old)'*gradB)./repmat(gB+0.000001,ns,1);
+                  beta = (gradB'*(gradB-gradB_old))./((gradB_old'*gradB_old)+0.000001);
                   gradB = gradB + gradB * beta;
               end
                             
               if mod(it,h) ~= 0
-                  beta = ((gradA - gradA_old)'*gradA)./repmat(gA+0.000001,h,1);
+                  beta = (gradA'*(gradA - gradA_old))./((gradA_old'*gradA_old)+0.000001);
                   gradA = gradA + gradA * beta;
               end
-
-              normB = newNormB;
-              normA = newNormA;
-                            
+              
               gradB_old = gradB;
               gradA_old = gradA;
-              
-              gB = sqrt(normB');
-              gA = sqrt(normA');
-              gradB = gradB ./ repmat(gB+0.000001,N,1);
-              gradA = gradA ./ repmat(gA+0.000001,N,1);
           end 
       end
       

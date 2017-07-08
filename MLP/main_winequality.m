@@ -1,5 +1,8 @@
 function [] = main_winequality()
-   
+    % executa varias parametrizacoes de uma MLP com gradiente descendente e
+    % método de bisseção
+    % dados intermediarios sao persistidos assim que possivel 
+    % sao criados graficos ao final da execucao
     neurons = [3 5 7 10:10:100];
     epochs = [200 500 1000];
     numExecutions = 20;

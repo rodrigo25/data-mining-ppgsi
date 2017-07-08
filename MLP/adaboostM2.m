@@ -71,43 +71,41 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
     while t<T
         t = t+1;
         
-        fprintf('%d ', t);
-        if mod(t,20) == 0
-            fprintf('\n');
+        fprintf('%d\n', t);
+        if mod(t,10) == 0
+            %fprintf('\n');
         end
         %fprintf('Adaboost M2 round %d\n', t);
         if lastResampledRound ~= t
+            
+            %if lastResampledRound == 1
+            %    [Xtr, Ytr, D, resample] = resample3(Xtr0, Ytr0, D);
+            %else
+            %    [Xtr, Ytr, D, resample] = resample3(Xtr0, Ytr0, D,resample);
+            %end
+            
+            %[Xtr, Ytr] = resample2(Xtr0, Ytr0, D,t);
             [Xtr, Ytr] = resample(Xtr0, Ytr0, D);
             lastResampledRound = t;
         end
         
-        %disp('# per class');
-        %disp(sum(Ytr));
+        disp('# per class');
+        disp(sum(Ytr));
         
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
-           % TODO mudar neuronios
-           % h = round( rand * (13 - 7) ) + 7;
+           h = round(rand * (25 - 15) + 15);
            lastNNArchChangedRound=t;
         end
                         
-        %V = ones(N,nc);
-        %V(Ytr ~= 1) = D./repmat((max(D,[],2)),1,nc-1);
-        
         % Trains the MLP 
         [A_t,B_t, netMSEtrain, netMSEval, epochsExecuted] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,2,1,0);
-        %[A_t,B_t] = MLP_clodoaldo(Xtr,Ytr,h,epochs);
-        %[A_t,B_t] = MLP_alfaAdaptativo(Xtr,Ytr,Xval,Yval,h,epochs,0);
-       
+        %[A_t,B_t, netMSEtrain, netMSEval, epochsExecuted] = MLPtreina(Xtr,Ytr,Xval,Yval,h,epochs,0,0,0,.01);
+        %[A_t, B_t, netMSEtrain, netMSEval, ~] = MLP_alfaAdaptativo(Xtr,Ytr,Xval,Yval,h,epochs,0);
+        %epochsExecuted = length(netMSEtrain);
+        
         %Yh - MLPs hypothesis
         Yh = MLPsaida(Xtr0, A_t, B_t);
-        
-        % shows accuracy
-        [~,Yhc]= max(Yh,[],2);
-        [~,Ytrc] = max(Ytr0,[],2);
-        
-        %acc = multiclassConfusionMatrix( Ytrc, Yhc, classes );
-        %fprintf('Adaboost M2 component %d executed %d epochs with validation error %f and training acc %f\n', t, epochsExecuted, netMSEval(epochsExecuted), acc);
         
         % Calculates pseudo-loss
         
@@ -135,7 +133,7 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
         %fprintf('Adaboost M2 round %d epsilon=%f\n', t, epsilon_t);
         
         D = D .* (beta_t .^ ( 1/2 *(1 + Yh_term - Yh_term_miss)));
-        
+         
         %{
         [~,Ytrc] = max(Ytr,[],2);
         [~,Yhc] = max(Yh,[],2);
@@ -158,19 +156,106 @@ function [Xtr, Ytr] = resample(Xtr, Ytr, D)
 %Resampling based on prob distribution generated from D
     [N,~] = size(Xtr);
     P = sum(D,2);
+    %{
+    [rows,~] = find(D > 0.5);
+    P(rows) = P(rows) * 100;
+    %}
+    P = P ./ sum(P);
+    
+    resample = randsample(N,N,true,P);
+    Xtr(:,:) = Xtr(resample,:);
+    Ytr(:,:) = Ytr(resample,:);
+    
+    %{
+    figure(1);
+    clf;
+    bar(1:size(Ytr,2),sum(Ytr));
+    title('Class distribution');
+
+    
+    [~,Yhc] = max(Yh,[],2);
+    [~,Ytrc] = max(Ytr,[],2);
+    missed = find((Yhc ~= Ytrc));
+    resampledMissedCount = zeros(1,numel(unique(Ytrc))); 
+    for i=1:numel(missed)
+       for j=1:N
+            if missed(i) == resample(j)
+                resampledMissedCount(Yhc(missed(i))) = resampledMissedCount(Yhc(missed(i))) + 1;
+            end
+        end 
+    end
+    disp('Resample selected:')
+    disp(resampledMissedCount);
+    %}
+end
+
+function [Xtr, Ytr, D] = resample2(Xtr, Ytr, D, Xtr0, Ytr0, t)
+%Resampling based on prob distribution generated from D
+%and based on class distribution weights
+    
+    [N,nc] = size(Ytr0);
+    if mod(t,10) == 0
+        %reset
+        Xtr = Xtr0;
+        Ytr = Ytr0;
+        D = repmat(1/(N * nc-1),N,nc-1);
+        return;
+    end
+    nPerClass = sum(Ytr);
+    [~,Ytrc] = max(Ytr,[],2);
+    
+    W = N * (nPerClass(Ytrc)'.^(-1));
+
+    P = sum(D,2);
+    P = P .* W;
     P = P ./ sum(P);
     resample = randsample(N,N,true,P);
     Xtr(:,:) = Xtr(resample,:);
     Ytr(:,:) = Ytr(resample,:);
+    
+    figure(1);
+    clf;
+    bar(1:size(Ytr,2),sum(Ytr));
+    title('Class distribution');
 end
 
-function [XtrResampled, YtrResampled] = resampleKeepClassDistr(Xtr, Ytr, D)
+function [Xtr, Ytr, D, resample] = resample3(Xtr, Ytr, D0, resample0)
+%Resampling based on prob distribution generated from D, reorders D as
+%needed
+    [N,nc] = size(Ytr);
+
+    if nargin < 4
+        D=D0;
+    else 
+        D = repmat(1/(N * nc-1),N,nc-1);
+        for i=1:N
+            ind = find(resample0 == i, 1, 'first');
+            if ~isempty(ind)
+               D(i,:) = D0(ind,:);
+            end
+        end
+    end
+    P = sum(D,2);
+    P = P ./ sum(P);
+    resample = randsample(N,N,true,P);
+    Xtr(:,:) = Xtr(resample,:);
+    Ytr(:,:) = Ytr(resample,:);
+    
+    figure(1);
+    clf;
+    bar(1:size(Ytr,2),sum(Ytr));
+    title('Class distribution');
+end
+
+function [XtrResampled, YtrResampled] = resamplePermClassDistr(Xtr, Ytr, D)
 %Resampling based on prob distribution generated from D keeping classes
 %distributions
     [N,ne] = size(Xtr);
     [~,ns] = size(Ytr);
     nPerClass = sum(Ytr);
     
+    %confWrongClasses = sum(D);
+    nPerClass = nPerClass(randperm(numel(nPerClass)));
     XtrResampled = zeros(N,ne);
     YtrResampled = zeros(N,ns);
     
@@ -182,10 +267,16 @@ function [XtrResampled, YtrResampled] = resampleKeepClassDistr(Xtr, Ytr, D)
        P = sum(D_i,2);
        P = P ./ sum(P);
        N_i = nPerClass(i);
-       resample = randsample(N_i,N_i,true,P);
+       resample = randsample(size(Xtr_i,1),N_i,true,P);
        
        XtrResampled(index:(index + N_i - 1),:) = Xtr_i(resample,:);
        YtrResampled(index:(index + N_i - 1),:) = Ytr_i(resample,:);
        index = index + N_i;
     end
+    
+    %figure(1);
+    %clf;
+    %bar(1:size(YtrResampled,2),sum(YtrResampled));
+    %title('Class distribution');
 end
+    
