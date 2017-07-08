@@ -1,30 +1,32 @@
-function [filesOut] = pre_processing(dataset,shouldOverwrite,typeCrossValidation,count)
-    if nargin < 4
-        count = 1;
-        if nargin < 3
-            %typeCrossValidation = 'holdout';
-            typeCrossValidation = 'kfold';        
-            if nargin < 2
-                shouldOverwrite = -1;
-                if nargin < 1
-                    %SELECIONA DATASET
-                    datasetOpt = input('Selecione o dataset [1]data_spambase [2]data_winequality-red [3]data_winequality-white: ');
+function [filesOut] = pre_processing(dataset,shouldOverwrite,typeCrossValidation,count,reductionType)
+    if nargin < 5
+        reductionType = 'none';
+        if nargin < 4
+            count = 1;
+            if nargin < 3
+                %typeCrossValidation = 'holdout';
+                typeCrossValidation = 'kfold';        
+                if nargin < 2
+                    shouldOverwrite = -1;
+                    if nargin < 1
+                        %SELECIONA DATASET
+                        datasetOpt = input('Selecione o dataset [1]data_spambase [2]data_winequality-red [3]data_winequality-white: ');
 
-                    switch datasetOpt
-                        case 1
-                            dataset = 'data_spambase';
-                        case 2
-                            dataset = 'data_winequality-red';
-                        case 3
-                            dataset = 'data_winequality-white';
-                        otherwise
-                            error('Unknown dataset option');
+                        switch datasetOpt
+                            case 1
+                                dataset = 'data_spambase';
+                            case 2
+                                dataset = 'data_winequality-red';
+                            case 3
+                                dataset = 'data_winequality-white';
+                            otherwise
+                                error('Unknown dataset option');
+                        end
                     end
-                end
-            end 
+                end 
+            end
         end
     end
-
     %CARREGA DATASET
     load(['data/' dataset '.mat']);
 
@@ -33,6 +35,17 @@ function [filesOut] = pre_processing(dataset,shouldOverwrite,typeCrossValidation
     %typeNormalization = 'min-max';
 
     [X, mean_val, std_val,min_val, max_val] = normalization( X, typeNormalization );
+    
+    if strcmp(reductionType,'pca')
+       [ coefs, ~, pcvar ] = pca(X);    
+        relVar = pcvar / sum(pcvar);
+        for dim=1:length(relVar)
+            if sum(relVar(1:dim)) >= 0.95
+                break;
+            end
+        end 
+        X = X * coefs(:,1:dim);
+    end
 
     %TRATANDO SAIDA DE PROBLEMAS MULTICLASS
     classes = unique(Y);
@@ -119,7 +132,7 @@ function [filesOut] = pre_processing(dataset,shouldOverwrite,typeCrossValidation
                     return; 
                 end
             end
-            save(filesOut,'XtrFolds','YtrFolds','XvalFolds','YvalFolds','preProcInfo'); %salva arq
+            save(fileOut,'XtrFolds','YtrFolds','XvalFolds','YvalFolds','preProcInfo'); %salva arq
         end
     end
 end
