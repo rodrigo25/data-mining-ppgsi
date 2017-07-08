@@ -1,4 +1,4 @@
-function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHandle, title, resultPath  )
+function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHandle, title, resultFileName  )
 %multiclassConfusionMatrix cria e exibe uma matriz de confusao multiclasse.
 %	Yd - matriz (n x 1) com os rotulos do conjunto de dados
 %	Y - matriz (n x 1) com os rotulos preditos
@@ -11,13 +11,19 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
           plotConfusionMatrix( classes, matrix, figureHandle );          
       elseif nargin == 5
           plotConfusionMatrix( classes, matrix, figureHandle, title );
+          close all;
       end
    else
-        plotConfusionMatrix( classes, matrix, figureHandle, title, resultPath );
+        plotConfusionMatrix( classes, matrix, figureHandle, title, resultFileName );
+        if numel(classes) == 2
+            classesMetricsMap = getConfusionMetrics( matrix, classes );
+            save(resultFileName,'classesMetricsMap');
+        end
+        close all;
    end
    
    accuracy = sum(diag(matrix)) / sum(sum(matrix));
-   close all;
+
    %fprintf('Accuracy is %.6f\n', accuracy);
 end
 
@@ -68,9 +74,12 @@ function [] = plotConfusionMatrix( classes, matrix, figureHandle, matrixTitle, r
     end
 end
 
-%{
 function classesMetricsMap = getConfusionMetrics( matrix, classes )
-    
+    zeroBasedClasses = 0;
+    if min(classes) == 0
+       classes = classes + 1; 
+       zeroBasedClasses = 1;
+    end
     classesMetrics = cell( 1, length(classes) );
     for i=1:length(classes)
         c = classes(i);
@@ -115,7 +124,8 @@ function classesMetricsMap = getConfusionMetrics( matrix, classes )
     
         classesMetrics{ c } = metrics;
     end
-    
+    if zeroBasedClasses
+       classes = classes - 1; 
+    end
     classesMetricsMap = containers.Map( num2cell(classes), classesMetrics );
 end
-%}
