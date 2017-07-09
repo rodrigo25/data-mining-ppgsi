@@ -8,7 +8,7 @@ function [] = main_spambase_kfold()
     neurons = [5 10 20 50 100];
     epochs = [100 200 500];
     fileNames = pre_processing('data_spambase',0, 'kfold', foldCount,'pca');
-    baseResultFileDir = 'grid\spambase-3\kfold\';
+    baseResultFileDir = 'grid\spambase\kfold\';
     
     for fileIndex=1:numel(fileNames)
         resultFileDir = [baseResultFileDir num2str(fileIndex) '\'];
@@ -116,7 +116,7 @@ function [] = trainMLP(h, maxEpochs, fileIndex, numExecutions, resultFileDir, Xt
         resultEps = zeros(numExecutions,1);
         resultYh = cell(numExecutions,1);
         tic
-        for t=1:numExecutions
+        parfor (t=1:numExecutions,4)
             resultFileName = [resultFileDir sprintf('h%d_maxEpochs%d_file%d_t%d_k%d', h, maxEpochs, fileIndex, t, k)];
             resultFileNames{t} = resultFileName;
             if exist([resultFileName '.mat'], 'file') == 2
@@ -133,7 +133,7 @@ function [] = trainMLP(h, maxEpochs, fileIndex, numExecutions, resultFileDir, Xt
             Y(Y < .5) = 0;
 
             [accuracy, ~ ] = multiclassConfusionMatrix( Ytest, Y, classes ); 
-            fprintf('file = %d\tk = %d\tt = %d\tacc = %f\tep = %d\n', fileIndex, k, t, accuracy, execEpochs);
+            fprintf('file = %d\tk = %d\tt = %d\tacc = %f\th = %d\tep = %d\n', fileIndex, k, t, accuracy, h, execEpochs);
             resultAccs(t) = accuracy; 
             resultEps(t) = execEpochs;
             resultYh{t} = Y;
