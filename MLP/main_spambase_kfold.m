@@ -31,80 +31,84 @@ function [] = main_spambase_kfold()
         end       
     end
     
-    % accuracy plots
-    mlpPlotNames = {};
-    accuracies = {};
-    executedEpochs = {};
-    mlpPlotIndex = 1;
-    for neuronIndex=1:numel(mlpNames)
-        h = mlpNames{neuronIndex};
-        mlpResultFileDir = [baseResultFileDir h '\'];
-        if strcmp(h, 'MLP-alfa-fixed' ) || strcmp(h,'MLP-step-decay')
-            for alfaIndex=1:length(alfas)
-                alfa = alfas(alfaIndex);
-                mlpNameWithAlfa = [h '-' num2str(alfa)];
-                mlpAccuracies = [];
-                mlpExecutedEpochs = [];
-                for fileIndex=1:numel(fileNames)
-                    mlpResultFileDir = [baseResultFileDir mlpNameWithAlfa '\' num2str(fileIndex) '\']; 
-                    for t=1:numExecutions
-                        load([mlpResultFileDir sprintf('%s_file%d_t%d', h, fileIndex, t)]);
-                        mlpAccuracies = [mlpAccuracies;acc];
-                        mlpExecutedEpochs = [mlpExecutedEpochs;ep];
-                    end
-                end
-                
-                mlpPlotNames{1,mlpPlotIndex} = mlpNameWithAlfa;
-                accuracies{mlpPlotIndex} = mlpAccuracies;
-                executedEpochs{mlpPlotIndex} = mlpExecutedEpochs;
-                mlpPlotIndex = mlpPlotIndex + 1;
-            end 
-        else
-            mlpAccuracies = [];
-            mlpExecutedEpochs = [];
+    % plots
+    plotsDir = [baseResultFileDir '\graficos\'];
+    if ~exist(plotsDir, 'dir')
+        mkdir(plotsDir);
+    end
+    for j=1:length(epochs)
+        maxEpochs = epochs(j);
+        accuracies = cell(length(neurons),1);
+        epochsExecuted = cell(length(neurons),1);
+        for i=1:length(neurons)
+            h = neurons(i);
+            accs = [];
+            eps = [];
             for fileIndex=1:numel(fileNames)
                 for t=1:numExecutions
-                    load([mlpResultFileDir num2str(fileIndex) '\' sprintf('%s_file%d_t%d', h, fileIndex, t)]);
-                    mlpAccuracies = [mlpAccuracies;acc];
-                    mlpExecutedEpochs = [mlpExecutedEpochs;ep];
-                end
+                    load([baseResultFileDir num2str(fileIndex) '\' sprintf('h%d_maxEpochs%d_file%d_t%d_k%d', h, maxEpochs, fileIndex, t, k)]);
+                    accs = [accs acc];
+                    eps  = [eps ep];
+                end 
             end
-            mlpPlotNames{1,mlpPlotIndex} = h;
-            accuracies{mlpPlotIndex} = mlpAccuracies;
-            executedEpochs{mlpPlotIndex} = mlpExecutedEpochs;
-            mlpPlotIndex = mlpPlotIndex + 1;
+            accuracies{i} = accs;
+            epochsExecuted{i} = eps;
+        end
+        cellAccuracies = accuracies;
+        accuracies = zeros(length(neurons),numel(fileNames)*numExecutions);
+        cellEpochsExecuted = epochsExecuted;
+        epochsExecuted = zeros(length(neurons),numel(fileNames)*numExecutions);
+        for i=1:length(neurons)
+            accuracies(i,:) = cellAccuracies{i};
+            epochsExecuted(i,:) = cellEpochsExecuted{i};
+        end        
+        meanAccuracies = mean(accuracies,2);
+        stdAccuracies = std(accuracies,1,2);
+        
+        meanEpochsExecuted = mean(epochsExecuted,2);
+        
+        if ~exist([plotsDir 'neuronios_acuracia'], 'dir')
+            mkdir([plotsDir 'neuronios_acuracia']);
+        end
+        neuronsAccuracyImpactPlotFile = [plotsDir 'neuronios_acuracia\neuronios_acuracia_' num2str(maxEpochs)];
+        if exist(neuronsAccuracyImpactPlotFile, 'file') ~= 2
+            errorbar(neurons, meanAccuracies, stdAccuracies);
+            xlabel('Neuronios');
+            ylabel('Acuracia');
+            title(sprintf('Qtde. de neuronios na camada oculta X Acuracia (max %d epocas)', maxEpochs));
+            if saveData == 1
+                print(neuronsAccuracyImpactPlotFile, '-dpng');  
+            end
+        end
+        
+        if ~exist([plotsDir 'epocas_acuracia'], 'dir')
+            mkdir([plotsDir 'epocas_acuracia']);
+        end
+        epochsAccuracyImpactPlotFile = [plotsDir 'epocas_acuracia\epocas_acuracia_' num2str(maxEpochs)];
+        if exist(epochsAccuracyImpactPlotFile, 'file') ~= 2
+            plot(meanEpochsExecuted, meanAccuracies, '-X', 'MarkerSize', 12)
+            xlabel('Epocas');
+            ylabel('Acuracia');
+            title('Epocas X Acuracia');
+            if saveData == 1
+                print(epochsAccuracyImpactPlotFile, '-dpng');
+            end
+        end
+
+        if ~exist([plotsDir 'epocas_exec_neuronios'], 'dir')
+            mkdir([plotsDir 'epocas_exec_neuronios']);
+        end
+        epochsExecutedMaxEpochsPlotFile = [plotsDir 'epocas_exec_neuronios\epocas_exec_neuronios_' num2str(maxEpochs)];
+        if exist(epochsExecutedMaxEpochsPlotFile, 'file') ~= 2
+            plot(neurons, meanEpochsExecuted, '--Xr', 'MarkerSize', 12)
+            xlabel('Neuronios');
+            ylabel('Epocas executadas');
+            title('Neuronios X Epocas executadas');
+            if saveData == 1
+                print(epochsExecutedMaxEpochsPlotFile, '-dpng');
+            end
         end
     end
-
-    
-    plotResultFileDir = [baseResultFileDir '\graficos'];
-    if ~exist(plotResultFileDir, 'dir')
-        mkdir(plotResultFileDir);
-    end
-    
-    % accuracies
-    boxplotData = [];
-    boxplotGroup = [];
-    for neuronIndex=1:numel(mlpPlotNames)
-        boxplotData = [boxplotData; accuracies{neuronIndex}];
-        boxplotGroup = [boxplotGroup; neuronIndex*ones(size(accuracies{neuronIndex}))];
-    end
-    figure
-    boxplot(boxplotData,boxplotGroup);
-    title('Acurácias');
-    print([plotResultFileDir '\accuracies_boxplot'], '-dpng');
-    
-    %epochs executed
-    boxplotData = [];
-    boxplotGroup = [];
-    for neuronIndex=1:numel(mlpPlotNames)
-        boxplotData = [boxplotData; executedEpochs{neuronIndex}];
-        boxplotGroup = [boxplotGroup; neuronIndex*ones(size(executedEpochs{neuronIndex}))];
-    end
-    figure
-    boxplot(boxplotData,boxplotGroup);
-    title('Épocas executadas');
-    print([plotResultFileDir '\executed_epochs_boxplot'], '-dpng');
 end
 
 function [] = trainMLP(h, maxEpochs, fileIndex, numExecutions, resultFileDir, XtrFolds, YtrFolds, XvalFolds, YvalFolds, classes, foldCount)
