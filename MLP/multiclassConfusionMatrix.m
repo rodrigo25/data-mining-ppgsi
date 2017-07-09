@@ -19,7 +19,6 @@ function [accuracy,matrix] = multiclassConfusionMatrix( Yd, Y, classes, figureHa
             classesMetricsMap = getConfusionMetrics( matrix, classes );
             save(resultFileName,'classesMetricsMap');
         end
-        close all;
    end
    
    accuracy = sum(diag(matrix)) / sum(sum(matrix));
@@ -72,6 +71,7 @@ function [] = plotConfusionMatrix( classes, matrix, figureHandle, matrixTitle, r
     else
         title('Matriz de confusão');
     end
+    close(figureHandle);
 end
 
 function classesMetricsMap = getConfusionMetrics( matrix, classes )

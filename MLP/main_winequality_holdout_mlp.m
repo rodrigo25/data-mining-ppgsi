@@ -94,17 +94,23 @@ function [] = main_winequality_holdout_mlp()
         mkdir(plotResultFileDir);
     end
     
+    mlpPlotNames = userFriendlyMlpPlotNames(mlpPlotNames);
     % accuracies
     boxplotData = [];
     boxplotGroup = [];
     for mlpIndex=1:numel(mlpPlotNames)
         boxplotData = [boxplotData; accuracies{mlpIndex}];
         boxplotGroup = [boxplotGroup; mlpIndex*ones(size(accuracies{mlpIndex}))];
+        mlpPlotNames{mlpIndex} = strcat(num2str(mlpIndex),' - ',mlpPlotNames{mlpIndex});
     end
     figure
     boxplot(boxplotData,boxplotGroup);
     title('Acurácias');
+    l = legend(findall(gca,'Tag','Box'), mlpPlotNames, 'Location', 'EastOutside');
+    legendLines=findobj(l,'type','line','linestyle','-');
+    set(legendLines,'visible','off');
     print([plotResultFileDir '\accuracies_boxplot'], '-dpng');
+    close all;
     
     %epochs executed
     boxplotData = [];
@@ -116,9 +122,51 @@ function [] = main_winequality_holdout_mlp()
     figure
     boxplot(boxplotData,boxplotGroup);
     title('Épocas executadas');
+    l = legend(findall(gca,'Tag','Box'), mlpPlotNames, 'Location', 'EastOutside');
+    legendLines=findobj(l,'type','line','linestyle','-');
+    set(legendLines,'visible','off');
     print([plotResultFileDir '\executed_epochs_boxplot'], '-dpng');
+    
+    close all;
 end
 
+function [names] = userFriendlyMlpPlotNames(mlpPlotNames)
+     names = cell(numel(mlpPlotNames),1);
+     for i=1:length(names)
+        mlpPlotName = mlpPlotNames{i};
+        switch mlpPlotName
+            case 'MLP-adaptative'
+                name = 'Adaptativo';
+            case 'MLP-alfa-fixed-0.01'
+                name = 'Fixo 0.01';
+            case 'MLP-alfa-fixed-0.1'
+                name = 'Fixo 0.1';
+            case 'MLP-alfa-fixed-0.2'
+                name = 'Fixo 0.2';
+            case 'MLP-alfa-fixed-0.5'
+                name = 'Fixo 0.5';
+            case 'MLP-alfa-fixed-0.9'
+                name = 'Fixo 0.9';
+            case 'MLP-bisec-grad-conj'
+                name = 'Bisseção com grad. conj.';
+            case 'MLP-bisect'
+                name = 'Bisseção';
+            case 'MLP-step-decay-0.01'
+                name = 'Decaimento 0.01';
+            case 'MLP-step-decay-0.1'
+                name = 'Decaimento 0.1';
+            case 'MLP-step-decay-0.2'
+                name = 'Decaimento 0.2';
+            case 'MLP-step-decay-0.5'
+                name = 'Decaimento 0.5';
+            case 'MLP-step-decay-0.9'
+                name = 'Decaimento 0.9';
+            otherwise
+                error(strcat('Unknown name: ', mlpPlotName));
+        end
+        names{i} = name;
+     end
+end
 function [] = trainMLP(mlpName, fileIndex, numExecutions, resultFileDir, Xtr, Ytr, Xval, Yval, Xtest, Ytest, alfa)
     resultFileNames = cell(numExecutions,1);
     resultAccs = zeros(numExecutions,1);
