@@ -67,8 +67,9 @@ function [] = main_spambase_kfold_roc()
             Ymlp = neuronsResultYh(:,j);
             Yd = neuronsResultYtest(:,j);
             
+            TPR = [];
+            FPR = [];
             for threshold=0:0.005:1
-                fN = fN +1;
 
                 Y(Ymlp>=threshold) = 1;
                 Y(Ymlp<threshold) = 0;
@@ -79,20 +80,22 @@ function [] = main_spambase_kfold_roc()
                 %ARMAZENA TPR E FPR PARA MONTAR A CURVA ROC
                 TPR = [TPR; res_struct(2).TPR];
                 FPR = [FPR; res_struct(2).FPR];
-
-                im_roc = figure; %cria o grafico ROC
-                plot([0 1],[0 1],'b','DisplayName','Diagonal'); %plota a diagonal ascendente
-                hold on
-                h = neurons(i);
-                plot( FPR, TPR, 'DisplayName',['MLP bisseção h=' num2str(h) ' threshold=' num2str(threshold)]); %Plota a curva ROC do componente
-                ylabel('True Positive Rate');
-                xlabel('False Positive Rate');
-                legend('show')
-                title('ROC')
-                print(im_roc,[plotsDir 'ROC_h=' num2str(h) '_threshold=' num2str(threshold) '_j=' num2str(j)],'-dpng');
             end 
+
+            im_roc = figure(1); %cria o grafico ROC
+            clf;
+            plot([0 1],[0 1],'b','DisplayName','Diagonal'); %plota a diagonal ascendente
+            hold on
+            h = neurons(i);
+            plot( FPR, TPR, 'DisplayName',['MLP bisseção h=' num2str(h)]); %Plota a curva ROC do componente
+            ylabel('True Positive Rate');
+            xlabel('False Positive Rate');
+            legend('show')
+            title('ROC')
+            print(im_roc,[plotsDir 'ROC_h=' num2str(h) '_j=' num2str(j)],'-dpng');
         end
     end
+    close all;
 end
 
 function [] = trainMLP(h, maxEpochs, fileIndex, numExecutions, resultFileDir, XtrFolds, YtrFolds, XvalFolds, YvalFolds, classes, foldCount)
