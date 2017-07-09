@@ -94,7 +94,7 @@ function [A, B, beta, MSEtrain, MSEval] = train(T, Xtr0, Ytr0, Xval, Yval, class
         
         % Changes MLP arch if needed
         if nnArchMode==1 && lastNNArchChangedRound~=t
-           h = round(rand * (25 - 15) + 15);
+           h = round(rand * (25 - 15) + 15); %assumes 20 as mean value
            lastNNArchChangedRound=t;
         end
                         

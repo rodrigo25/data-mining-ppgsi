@@ -1,13 +1,13 @@
 function [] = main_winequality_holdout_adaboost()
 
-    neurons = [20 40 60];
-    epochs = [200 500 1000 5000];
-    T = 100;
-    numExecutions = 10;
+    neurons = [20];
+    epochs = [1000 5000];
+    T = 35;
+    numExecutions = 1;
     holdoutCount = 5;
     
     fileNames = pre_processing('data_winequality-red',0, 'holdout', holdoutCount);
-    baseResultFileDir = 'ensemble-T100-arch0\winequality\red\holdout\';
+    baseResultFileDir = 'ensemble-T35-arch1\winequality\red\holdout\';
     for fileIndex=1:numel(fileNames)
         load(fileNames{1}); 
         % assigns variables to themselves, so threads in the pool can see
@@ -31,7 +31,8 @@ function [] = main_winequality_holdout_adaboost()
             for j=1:length(epochs)
                 maxEpochs = epochs(j);
                 YhEnsembles = cell(numExecutions,1);
-                parfor (t=1:numExecutions,4)
+                %parfor (t=1:numExecutions,4)
+                for t=1:numExecutions
                     resultFileName = [resultFileDir sprintf('maxEpochs%d_h%d_t%d', maxEpochs, h, t)];
                     if exist([resultFileName '.mat'], 'file') == 2
                        continue; 
