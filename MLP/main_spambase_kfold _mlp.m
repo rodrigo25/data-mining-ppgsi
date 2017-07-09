@@ -124,7 +124,6 @@ function [] = trainMLP(mlpName, fileIndex, numExecutions, resultFileDir, XtrFold
     %parfor (t=1:numExecutions,3)
     for k=1:foldCount
         [Xtr, Ytr, Xtest, Ytest, Xval, Yval] = createDatasets(XtrFolds, YtrFolds, XvalFolds, YvalFolds, k);
-        [~,YtestClasses] = max(Ytest,[],2);
         for t=1:numExecutions
             resultFileName = [resultFileDir sprintf('%s_file%d_t%d_k%d', mlpName, fileIndex, t, k)];
             resultFileNames{t} = resultFileName;
@@ -134,28 +133,29 @@ function [] = trainMLP(mlpName, fileIndex, numExecutions, resultFileDir, XtrFold
 
             switch mlpName
                 case 'MLP-alfa-fixed'
-                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 20, 1000, 0, 0, 1, alfa );
+                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 10, 500, 0, 0, 1, alfa );
                 case 'MLP-step-decay'
-                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 20, 1000, 1, 0, 1, alfa );
+                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 10, 500, 1, 0, 1, alfa );
                 case 'MLP-bisect' 
-                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 20, 1000, 2, 0, 1 );
+                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 10, 500, 2, 0, 1 );
                 case 'MLP-bisec-grad-conj' 
-                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 20, 1000, 2, 1, 1 );
+                    [ A, B, ~, ~, execEpochs ] = MLPtreina( Xtr, Ytr, Xval, Yval, 10, 500, 2, 1, 1 );
                 case 'MLP-adaptative'
-                    [ A, B, ERROtr, ~, ~ ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, 20, 1000, 1 );
+                    [ A, B, ERROtr, ~, ~ ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, 10, 500, 1 );
                     execEpochs = length(ERROtr);
                 otherwise
                     error('dont know');
             end        
 
-            Y = MLPsaida( Xtest, A, B );
+            Yh = MLPsaida( Xtest, A, B );
+            Yh(Yh>=.5) = 1;
+            Yh(Yh< .5) = 0;
 
-            [~,Ytc] = max(Y,[],2); 
-            [accuracy, ~ ] = multiclassConfusionMatrix( YtestClasses, Ytc, classes ); 
+            [accuracy, ~ ] = multiclassConfusionMatrix( Ytest, Yh, classes ); 
             fprintf('MLP = %s\tfile = %d\tk = %d\tt = %d\tacc = %f\tep = %d\n', mlpName, fileIndex, k, t, accuracy, execEpochs);
             resultAccs(t) = accuracy; 
             resultEps(t) = execEpochs;
-            resultYh{t} = Y;
+            resultYh{t} = Yh;
         end 
     end
     %saves data
@@ -167,13 +167,11 @@ function [] = trainMLP(mlpName, fileIndex, numExecutions, resultFileDir, XtrFold
         acc = resultAccs(t);
         ep = resultEps(t);
         Yh = resultYh{t};
-        [~,Yhc] = max(Yh,[],2);
         confusionMatrixName = mlpName;
         if strcmp(mlpName,'MLP-alfa-fixed') || strcmp(mlpName, 'MLP-step-decay')
             confusionMatrixName = [mlpName ' alfa' num2str(alfa)];
         end
-        multiclassConfusionMatrix(YtestClasses, Yhc, classes, 1, confusionMatrixName, [resultFileName '_confusion_matrix'] );
-        
+        multiclassConfusionMatrix(Ytest, Yh, classes, 1, confusionMatrixName, [resultFileName '_confusion_matrix'] );        
         save(resultFileName, 'acc', 'ep', 'Yh');
     end 
 end
