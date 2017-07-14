@@ -1,13 +1,16 @@
 %CARREGA DADOS
-dataset = 't4.8k.mat';
+%dataset = 't4.8k.mat';
 %dataset = 't4.8k-modified.mat';
-%dataset = 'path-based2';
+dataset = 'path-based2';
 %dataset = 'test_rand1k';
 %dataset = 'test_uniform';
 %dataset = 'test_points2';
 %dataset = 'test_points3';
 %dataset = 'test_S1';
 %dataset = 'test_chainlink';
+
+%load fisheriris.mat
+%X = meas;
 
 load(['data/data_' dataset])
 
@@ -21,25 +24,25 @@ typeNormalization = 'zscore'; % zscore ou min-max
 
 
 %PARAMETRIZAÇÃO
-dim = [40 40]; % Dimensão do Grid de saida - dimention[Nx Ny] (Nx*Ny=Ns)
-alfaIni = .9; % Taxa de aprendizado inicial
+dim = [17 17]; % Dimensão do Grid de saida - dimention[Nx Ny] (Nx*Ny=Ns)
+alphaIni = .9; % Taxa de aprendizado inicial
 raioIni = 15; % Raio inicial delimitador da vizinhança de um neuronio
-lambda = 32; % Desvio padrao da funcao de decaimento do alfa
-tau = 32; % Desvio padrao da funcao de decaimento do raio
+lambda = 50; % Taxa de decaimento do alfa
+tau = 50; % Taxa de decaimento do raio
 fDist = 'e'; % Função de distancia ('e' euclidiana, 'm' manhattan )
-itMax = 100; % Num maximo de iterações
+itMax = 150; % Num maximo de iterações
 
 
 
 %TREINAMENTO DO SOM
 tic
-[W, WHist, QuantErrorHist, TopolErrorHist, DeltaMeanHist, DeltaMaxHist, TimeTrain] = SOM( X, dim, alfaIni, raioIni, lambda, tau, fDist, itMax );
+[W, WHist, QuantErrorHist, TopolErrorHist, DeltaMeanHist, DeltaMaxHist, TimeTrain] = SOM( X, dim, alphaIni, raioIni, lambda, tau, fDist, itMax );
 %W - Pesos finais dos neuronios da rede
-%WHist - Historico dos pesos dos neuronios da rede a cada 50 iteracoes
+%WHist - Historico dos pesos dos neuronios no inicio, em 33% e 66% de iteracoes e no fim
 %QuantErrorHist - Historico do Erro de Quantizacao a cada iteracao
 %TopolErrorHist - Historico do Erro Topologico a cada iteracao
-%DeltaMeanHist - Historico do Delta Médio a cada iteracao
-%DeltaMaxHist - Historico do Delta Máximo a cada iteracao
+%DeltaMeanHist - Historico do Delta Medio a cada iteracao
+%DeltaMaxHist - Historico do Delta Maximo a cada iteracao
 %TimeTrain - Tempo de Treinamento
 
 
@@ -57,33 +60,33 @@ dirName = ['Resultados/' dataset '/' char(dt) '/'];
 mkdir(dirName);
 
 % Plota dados originais
-plotOriginalData(X, dirName);
+%plotOriginalData(X, dirName);
 
 %Plota Grid
 plotGrid(W, dim, dirName);
 
 %Plota Influencia
 inflMin = 0;
-plotInfluencia( X, W, H, BMUfinal, inflMin, dirName);
+%plotInfluencia( X, W, H, BMUfinal, inflMin, dirName);
 
 inflMin = 5;
-plotInfluencia( X, W, H, BMUfinal, inflMin, dirName);
+%plotInfluencia( X, W, H, BMUfinal, inflMin, dirName);
 
 %Plota Erros
 plotErros(QuantErrorHist, TopolErrorHist, dirName);
 
 %Plota Deltas
-plotDeltas(DeltaMeanHist, DeltaMaxHist, dirName);
+%plotDeltas(DeltaMeanHist, DeltaMaxHist, dirName);
 
 %Cria log do SOM
-createLog( dataset, size(X), typeNormalization,  dim, alfaIni, raioIni, lambda, tau, fDist, itMax, TimeTrain, QuantErrorHist(end), TopolErrorHist(end), dirName );
+createLog( dataset, size(X), typeNormalization,  dim, alphaIni, raioIni, lambda, tau, fDist, itMax, TimeTrain, QuantErrorHist(end), TopolErrorHist(end), dirName );
 
 %Plota Grid Evolution
-plotGridEvolution( WHist, dim, dirName );
+%plotGridEvolution( WHist, dim, dirName );
 
 %Plota U-Matrix
 plotUMatix( W, dim, dirName );
 
 %Salva Workspace
-save([dirName '/parameters'], 'dataset', 'typeNormalization', 'dim', 'alfaIni', 'raioIni', 'lambda', 'tau', 'fDist', 'itMax');
+save([dirName '/parameters'], 'dataset', 'typeNormalization', 'dim', 'alphaIni', 'raioIni', 'lambda', 'tau', 'fDist', 'itMax');
 save([dirName '/results'], 'W', 'WHist', 'QuantErrorHist', 'TopolErrorHist', 'DeltaMeanHist', 'DeltaMaxHist', 'TimeTrain');

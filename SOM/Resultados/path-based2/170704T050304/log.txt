@@ -1,0 +1,32 @@
+
+	 Log de Treinamento da Rede SOM
+
+ ---------------------------------------
+              Base de Dados             
+ ---------------------------------------
+ Nome: 						path-based2
+ Quantidade de Instâncias: 	312
+ Dimensionalidade: 			2
+ Tipo de Normalização: 		zscore
+
+
+ ---------------------------------------
+         Parametrização da Rede         
+ ---------------------------------------
+ Dimensionalidade da saída: 9x9
+ Alfa Inicial: 				0.900
+ Raio Inicial: 				30
+ Lambda: 					100
+ Tau: 						100
+ Função de Distância: 		Euclidiana
+ Máximo de Iterações: 	    430
+ Topologia: 					Retangular
+ Função de Vizinhança: 		Gaussiana
+
+
+ ---------------------------------------
+               Resultados              
+ ---------------------------------------
+ Tempo de treinamento (s): 	16.4471877
+ Erro de Quatização: 		0.1307448
+ Erro Topológico: 			0.1057692

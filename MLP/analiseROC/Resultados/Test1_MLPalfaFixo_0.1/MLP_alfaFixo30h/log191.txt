@@ -1,0 +1,50 @@
+
+			 Log de Teste da MLP
+
+
+
+ ---------------------------------------------------
+                 Configurações da Rede              
+ ---------------------------------------------------
+ Nome: 							MLP_alfaFixo
+ Função de Otimização: 			Gradiente
+ Camadas Escondidas: 			1
+ Neurônios na Camada Escondida: 30
+ Alfa: 							Fixo
+ Máximo de Iterações: 			1000
+ Limiar de Decisão: 			0.950000
+
+
+ ---------------------------------------------------
+                  Matriz de Confusão                
+ ---------------------------------------------------
+
+	            Predicted         
+	      ----------------------  
+	     |     P    |      N    |     
+	  --------------------------|
+	 | P |	1071	|	 133	|    
+	  -------------------------- 
+	 | N |	 165	|	1666	|    
+	  -------------------------- 
+
+True Positive 		- 1071
+False Negative 		- 133
+False Positive 		- 165
+True Negative 		- 1666
+
+
+ ---------------------------------------------------
+                    Estatísticas                    
+ ---------------------------------------------------
+True Positive Rate (Recall) 			- 0.889535
+True Negative Rate (Specificity) 		- 0.909885
+Positive Predictive Value (Precision) 	- 0.866505
+Negative Predictive Value 				- 0.926070
+False Negative Rate (Miss Rate) 		- 0.110465
+False Discovery Rate 					- 0.133495
+False Omission Rate 					- 0.073930
+Accuracy 								- 0.901812
+F-score 								- 0.877869
+Matthews Correlation Coefficient 		- 0.795990
+ ---------------------------------------------------

@@ -1,0 +1,32 @@
+
+	 Log de Treinamento da Rede SOM
+
+ ---------------------------------------
+              Base de Dados             
+ ---------------------------------------
+ Nome: 						t4.8k.mat
+ Quantidade de Instâncias: 	8000
+ Dimensionalidade: 			2
+ Tipo de Normalização: 		zscore
+
+
+ ---------------------------------------
+         Parametrização da Rede         
+ ---------------------------------------
+ Dimensionalidade da saída: 40x40
+ Alfa Inicial: 				0.900
+ Raio Inicial: 				15
+ Lambda: 					32
+ Tau: 						32
+ Função de Distância: 		Euclidiana
+ Máximo de Iterações: 	     90
+ Topologia: 					Retangular
+ Função de Vizinhança: 		Gaussiana
+
+
+ ---------------------------------------
+               Resultados              
+ ---------------------------------------
+ Tempo de treinamento (s): 	308.1285535
+ Erro de Quatização: 		0.0449379
+ Erro Topológico: 			0.0430000

@@ -23,7 +23,7 @@ for i=2:2:tam_matrix
     indj = floor(j/2+1);
     ind = Nx*(indi-1)+indj;
     
-    u_matrix(i,j) = norm( W(ind) - W(ind+1) );
+    u_matrix(i,j) = norm( W(ind) - W(ind+Nx) );
   end
 end
 
