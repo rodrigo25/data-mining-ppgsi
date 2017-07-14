@@ -13,7 +13,7 @@ for k=1:5
   Yd = [Yd; Ytest];
     
   %TREINA CLASSIFICADOR
-  [ A, B, ERROtr, ERROval, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, neur, maxIt,0);
+  [ A, B, ERROtr, ERROval, ALFA ] = MLP_alfaAdaptativo( Xtr, Ytr, Xval, Yval, neur, maxIt,1);
   redeConfig.Alfa = ['Adaptativo'];
   
   %TESTA CLASSIFICADOR

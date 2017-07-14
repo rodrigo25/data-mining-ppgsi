@@ -29,12 +29,6 @@ function [TPR, FPR] = spambase_kfoldCV(classificador, neur, dirPai)
       case 'MLP_clodoaldo'
         [ A, B ] = MLP_clodoaldo( Xtr, Ytr, neur, maxIt );
         redeConfig.Alfa = ['Bisseção'];
-      case 'MLP_alfaFixo'
-        [ A, B ] = MLP_treina( Xtr, Ytr, Xval, Yval, neur, maxIt, .1, 0, 1 ); 
-        redeConfig.Alfa = ['Fixo'];
-      case 'MLP_alfaDecay'
-        [ A, B ] = MLP_treina( Xtr, Ytr, Xval, Yval, neur, maxIt, .1, 1, 1 ); 
-        redeConfig.Alfa = ['Decay'];
       otherwise
         error('Rede Inexistente')      
     end
@@ -73,12 +67,6 @@ function [TPR, FPR] = spambase_kfoldCV(classificador, neur, dirPai)
     FPR = [FPR; res_struct(2).FPR];
     
   end
-  
-  
-  
-  
-  %%%
-  
   
   
 end
