@@ -133,45 +133,6 @@ print(im_umatrix3D,[dirName 'u-matrix3D'],'-dpng');
 
 
 
-return
-
-
-
-
-
-
-%Define média dos vizinhos de cada neuronio  
-for i=1:2:tam_matrix
-  for j=1:2:tam_matrix
-    t = 0;
-    soma = 0;
-    if(i-1>0) %pra cima
-      t = t+1;
-      soma = soma + u_matrix(i-1,j);
-    end 
-    if (j+1<=dim(2))%pra direita
-      t = t+1;
-      soma = soma + u_matrix(i,j+1);
-    end
-    if (i+1<=dim(1))%pra baixo
-      t = t+1;
-      soma = soma + u_matrix(i+1,j);
-    end
-    if (j-1>0)%pra esquerda
-      t = t+1;
-      soma = soma + u_matrix(i,j-1);
-    end
-  
-    u_matrix(i,j) = soma/t;
-    
-  end
-end
-
-
-
-
-
-
 
 end
 

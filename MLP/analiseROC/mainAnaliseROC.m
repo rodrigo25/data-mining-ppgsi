@@ -1,15 +1,17 @@
 
 %DEFINE NOME DO TESTE
 %testName = 'Test1_MLPclodoaldo';
-testName = 'Test2_MLPalfaAdaptativo';
+%testName = 'Test2_MLPalfaAdaptativo';
+testName = 'Test1_MLPalfaFixo_0.1';
 
 %SELECIONA ALGORITMOS PARA EXECUTAR
+%Algoritmos = {'MLP_clodoaldo', 'MLP_alfaAdaptativo', 'MLP_alfaFixo', 'MLP_alfaDecay'};
 %Algoritmos = {'MLP_clodoaldo'};
-Algoritmos = {'MLP_alfaAdaptativo'};
+Algoritmos = {'MLP_alfaFixo'};
 totalAlgoritmos = length(Algoritmos);
 
 %SELECIONA VARIACAO DE NEURONIOS NA CAMADA OCULTA
-Neuronios = [70 80 90 100];
+Neuronios = [10 30 50 70 90 110];
 %Neuronios = 20:20:200;
 totalNeuronios = length(Neuronios);
 
@@ -39,9 +41,9 @@ for a=1:totalAlgoritmos % iteracao dos algoritmos
     
     [TPR, FPR] = spambase_kfoldCV(Algoritmos{a}, Neuronios(n), dirName);
     ROCdata{a,n} = {TPR FPR};
-    %plot( FPR, TPR, 'DisplayName',[Algoritmos{a} ' com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
+    plot( FPR, TPR, 'DisplayName',[Algoritmos{a} ' ' num2str(Neuronios(n)) ' neur']); %Plota a curva ROC do componente
     %plot( FPR, TPR, 'DisplayName',['MLP Clodoaldo com ' num2str(Neuronios(n))]); %Plota a curva ROC do componente
-    plot( FPR, TPR, 'DisplayName',['MLP Adaptativo ' num2str(Neuronios(n)) ' neur']); %Plota a curva ROC do componente
+    %plot( FPR, TPR, 'DisplayName',['MLP Adaptativo ' num2str(Neuronios(n)) ' neur']); %Plota a curva ROC do componente
     
   end
 end
